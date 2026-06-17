@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Lock, RefreshCw, Volume2, ShieldCheck, ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,11 +15,43 @@ export const Route = createFileRoute("/")({
 });
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [captcha, setCaptcha] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
+  const [captchaInput, setCaptchaInput] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: "/dashboard", replace: true });
+    });
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (captchaInput.trim() !== captcha) {
+      toast.error("Captcha doesn't match. Please try again.");
+      setCaptcha(Math.floor(100000 + Math.random() * 900000).toString());
+      setCaptchaInput("");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate({ to: "/dashboard", replace: true });
+    } catch (err: any) {
+      toast.error(err.message ?? "Login failed");
+      setCaptcha(Math.floor(100000 + Math.random() * 900000).toString());
+      setCaptchaInput("");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Top bank header bar */}
       <header className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -44,43 +78,45 @@ function LoginPage() {
         </div>
       </header>
 
-      {/* Main hero + login */}
       <main className="flex-1" style={{ background: "linear-gradient(135deg, #0b4da2 0%, #134a93 50%, #1c64c4 100%)" }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20 grid lg:grid-cols-2 gap-10 items-start">
-          {/* Welcome copy */}
           <div className="text-white">
-            <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
-              Welcome to<br />Online Banking!
-            </h1>
+            <h1 className="text-4xl sm:text-5xl font-bold leading-tight">Welcome to<br />Online Banking!</h1>
             <p className="mt-6 text-white/85 text-base sm:text-lg max-w-xl leading-relaxed">
               Explore our One Stop Banking Solution – your secure, user-friendly gateway to effortless banking, anytime, anywhere, and experience the seamless journey.
             </p>
-
             <div className="mt-16 max-w-xl">
               <h2 className="text-lg font-semibold">Security Tips to avoid Phishing Attacks</h2>
               <p className="mt-3 text-sm text-white/80 leading-relaxed">
                 Always visit our Internet Banking Site directly through the website or through the link provided in our official website Central Bank of India.
               </p>
-              <p className="mt-3 text-sm text-white/80">
-                Keep your user id and password information safe and secure.
-              </p>
+              <p className="mt-3 text-sm text-white/80">Keep your user id and password information safe and secure.</p>
             </div>
           </div>
 
-          {/* Login card */}
           <div className="lg:justify-self-end w-full max-w-md">
             <div className="bg-secondary rounded-2xl shadow-2xl p-8">
               <h2 className="text-xl font-semibold text-foreground text-center">Login to Personal Banking</h2>
-              <p className="text-xs text-muted-foreground mt-1 mb-6">VERSION: V1.3.27</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-6 text-center">VERSION: V1.3.27</p>
 
-              <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); window.location.href = "/dashboard"; }}>
+              <form className="space-y-5" onSubmit={handleLogin}>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
-                    CIF / User ID <span className="text-destructive">*</span>
+                    Email <span className="text-destructive">*</span>
                   </label>
                   <input
-                    type="text"
-                    placeholder="Please type here...."
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Password <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
@@ -89,18 +125,11 @@ function LoginPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">Captcha</label>
                     <div className="flex items-center gap-2">
-                      <div className="px-4 py-2.5 bg-white border border-border rounded font-mono font-bold tracking-widest text-foreground">
-                        {captcha}
-                      </div>
+                      <div className="px-4 py-2.5 bg-white border border-border rounded font-mono font-bold tracking-widest text-foreground">{captcha}</div>
                       <button type="button" className="text-primary hover:text-primary/80" aria-label="Audio captcha">
                         <Volume2 className="w-5 h-5" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setCaptcha(Math.floor(100000 + Math.random() * 900000).toString())}
-                        className="text-primary hover:text-primary/80"
-                        aria-label="Refresh captcha"
-                      >
+                      <button type="button" onClick={() => setCaptcha(Math.floor(100000 + Math.random() * 900000).toString())} className="text-primary hover:text-primary/80" aria-label="Refresh captcha">
                         <RefreshCw className="w-5 h-5" />
                       </button>
                     </div>
@@ -108,20 +137,17 @@ function LoginPage() {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">Enter Captcha</label>
                     <input
-                      type="text"
-                      placeholder="Please type here...."
+                      type="text" required value={captchaInput} onChange={(e) => setCaptchaInput(e.target.value)}
+                      placeholder="Type captcha"
                       className="w-full px-4 py-3 rounded-lg border border-border bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <a href="#" className="text-sm font-medium text-primary hover:underline">Trouble Logging In ?</a>
-                  <button
-                    type="submit"
-                    className="px-10 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-md"
-                  >
-                    Login
+                  <Link to="/auth" className="text-sm font-medium text-primary hover:underline">Trouble Logging In?</Link>
+                  <button type="submit" disabled={loading} className="px-10 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-md disabled:opacity-60">
+                    {loading ? "Please wait…" : "Login"}
                   </button>
                 </div>
 
@@ -131,31 +157,15 @@ function LoginPage() {
                   <div className="flex-grow border-t border-border" />
                 </div>
 
-                <button
-                  type="button"
-                  className="w-full py-3 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary/5 transition-colors"
-                >
-                  Cent eeZ Registration
-                </button>
+                <Link to="/auth" className="block text-center w-full py-3 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary/5 transition-colors">
+                  Create New Account
+                </Link>
               </form>
-            </div>
-
-            {/* Looking for box */}
-            <div className="mt-4 bg-secondary rounded-xl shadow-lg p-4 flex items-center gap-3">
-              <span className="text-sm text-foreground whitespace-nowrap">I am looking for a</span>
-              <select className="flex-1 px-3 py-2 bg-white border border-border rounded-md text-sm focus:outline-none">
-                <option>Loan</option>
-                <option>Account</option>
-                <option>Card</option>
-                <option>Deposit</option>
-              </select>
-              <button className="px-5 py-2 border-2 border-primary text-primary rounded-full font-semibold text-sm hover:bg-primary/5">Go</button>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
