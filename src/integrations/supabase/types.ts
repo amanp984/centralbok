@@ -166,12 +166,77 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          address: string | null
+          created_at: string
+          currency: string
+          id: string
+          language: string
+          login_alerts: boolean
+          notify_email: boolean
+          notify_marketing: boolean
+          notify_push: boolean
+          notify_sms: boolean
+          phone: string | null
+          theme: string
+          two_factor_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          language?: string
+          login_alerts?: boolean
+          notify_email?: boolean
+          notify_marketing?: boolean
+          notify_push?: boolean
+          notify_sms?: boolean
+          phone?: string | null
+          theme?: string
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          language?: string
+          login_alerts?: boolean
+          notify_email?: boolean
+          notify_marketing?: boolean
+          notify_push?: boolean
+          notify_sms?: boolean
+          phone?: string | null
+          theme?: string
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      execute_transfer: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_beneficiary_account: string
+          p_beneficiary_ifsc: string
+          p_beneficiary_name: string
+          p_description: string
+          p_mode: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
