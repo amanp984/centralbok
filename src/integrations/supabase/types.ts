@@ -14,7 +14,158 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          account_number: string
+          account_type: string
+          balance: number
+          created_at: string
+          id: string
+          ifsc: string
+          is_primary: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          account_type?: string
+          balance?: number
+          created_at?: string
+          id?: string
+          ifsc?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          account_type?: string
+          balance?: number
+          created_at?: string
+          id?: string
+          ifsc?: string
+          is_primary?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      beneficiaries: {
+        Row: {
+          account_number: string
+          created_at: string
+          id: string
+          ifsc: string
+          is_favourite: boolean
+          name: string
+          nickname: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          created_at?: string
+          id?: string
+          ifsc: string
+          is_favourite?: boolean
+          name: string
+          nickname?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          created_at?: string
+          id?: string
+          ifsc?: string
+          is_favourite?: boolean
+          name?: string
+          nickname?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          last_login: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          last_login?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          last_login?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          beneficiary_account: string | null
+          beneficiary_ifsc: string | null
+          beneficiary_name: string | null
+          created_at: string
+          description: string | null
+          direction: string
+          id: string
+          mode: string
+          reference: string
+          running_balance: number | null
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          beneficiary_account?: string | null
+          beneficiary_ifsc?: string | null
+          beneficiary_name?: string | null
+          created_at?: string
+          description?: string | null
+          direction: string
+          id?: string
+          mode?: string
+          reference: string
+          running_balance?: number | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          beneficiary_account?: string | null
+          beneficiary_ifsc?: string | null
+          beneficiary_name?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          mode?: string
+          reference?: string
+          running_balance?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
