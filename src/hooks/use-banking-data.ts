@@ -101,8 +101,11 @@ export function useBankingRealtime(userId: string | undefined) {
   const qc = useQueryClient();
   useEffect(() => {
     if (!userId) return;
+    // Private channel: realtime.messages RLS restricts the topic
+    // `banking:<uid>` to its owner, so other authenticated users cannot
+    // subscribe to this user's account/transaction/beneficiary stream.
     const channel = supabase
-      .channel(`banking:${userId}`)
+      .channel(`banking:${userId}`, { config: { private: true } })
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` }, () => {
         qc.invalidateQueries({ queryKey: qk.transactions(userId) });
         qc.invalidateQueries({ queryKey: qk.accounts(userId) });
