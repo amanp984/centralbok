@@ -113,7 +113,6 @@ function SettingsPage() {
 
           <TabsContent value="security">
             <Card>
-              <Toggle label="Two-factor authentication" desc="Require an OTP for sensitive actions" checked={form.two_factor_enabled} onChange={(v) => setForm({ ...form, two_factor_enabled: v })} />
               <Toggle label="Login alerts" desc="Email me when a new device signs in" checked={form.login_alerts} onChange={(v) => setForm({ ...form, login_alerts: v })} />
             </Card>
             <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-6 mt-4">
