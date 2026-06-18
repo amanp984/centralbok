@@ -6,7 +6,6 @@ import {
   CartesianGrid, LineChart, Line, Legend,
 } from "recharts";
 import { TrendingUp, TrendingDown, Wallet, Target } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,10 +60,10 @@ function PFMPage() {
     return { monthly, categories, totalCredits, totalDebits, net: totalCredits - totalDebits };
   }, [txs]);
 
-  if (isLoading) return <AppShell title="Personal Finance"><Skeleton className="h-96 w-full" /></AppShell>;
+  if (isLoading) return <><Skeleton className="h-96 w-full" /></>;
 
   return (
-    <AppShell title="Personal Finance Management">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Kpi icon={TrendingUp} label="Inflow (6m)" value={formatINR(stats.totalCredits)} accent="text-success" />
@@ -128,7 +127,7 @@ function PFMPage() {
           </ul>
         </Panel>
       </div>
-    </AppShell>
+    </>
   );
 }
 

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PiggyBank, Calendar, TrendingUp, Plus } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatINR, formatDate } from "@/lib/banking";
@@ -30,7 +29,7 @@ function DepositsPage() {
   const maturityValue = DEPOSITS.filter((d) => d.status === "Active").reduce((s, d) => s + d.maturityAmount, 0);
 
   return (
-    <AppShell title="Fixed Deposits">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Stat label="Active Deposits" value={String(DEPOSITS.filter((d) => d.status === "Active").length)} icon={PiggyBank} />
@@ -82,7 +81,7 @@ function DepositsPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }
 

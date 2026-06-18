@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, type Transaction } from "@/hooks/use-banking-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +70,7 @@ function StatementsPage() {
   };
 
   return (
-    <AppShell title="Statements">
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -166,7 +165,7 @@ function StatementsPage() {
           )}
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
 

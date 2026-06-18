@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, Lock } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -80,10 +79,10 @@ function SettingsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return <AppShell title="Settings"><Skeleton className="h-96 w-full max-w-4xl mx-auto" /></AppShell>;
+  if (isLoading) return <><Skeleton className="h-96 w-full max-w-4xl mx-auto" /></>;
 
   return (
-    <AppShell title="Settings">
+    <>
       <div className="max-w-4xl mx-auto">
         <Tabs defaultValue="profile">
           <TabsList>
@@ -156,7 +155,7 @@ function SettingsPage() {
           </Button>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
 

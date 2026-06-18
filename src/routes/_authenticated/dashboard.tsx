@@ -6,7 +6,6 @@ import {
   Percent, Banknote, Plane, Hotel, ShoppingBag, Gift, Ticket,
   MoreHorizontal, ChevronRight, Eye, EyeOff, ArrowUpRight, ArrowDownLeft,
 } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
 import { useBankingModal } from "@/components/modals/BankingModalProvider";
@@ -32,7 +31,7 @@ function Dashboard() {
   const primary = accounts?.find((a) => a.is_primary) ?? accounts?.[0];
 
   return (
-    <AppShell title="Dashboard">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Account Overview */}
@@ -190,7 +189,7 @@ function Dashboard() {
           </section>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
 
