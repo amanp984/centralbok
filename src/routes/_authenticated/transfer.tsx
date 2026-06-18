@@ -65,8 +65,9 @@ function TransferPage() {
 
   const transferMut = useMutation({
     mutationFn: async () => {
-      if (!primary || !selected) throw new Error("Missing data");
+      if (!primary || !selected || !user) throw new Error("Missing data");
       const { data, error } = await supabase.rpc("execute_transfer" as never, {
+        p_user_id: user.id,
         p_account_id: primary.id,
         p_amount: amountNum,
         p_mode: mode,

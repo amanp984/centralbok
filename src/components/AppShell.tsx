@@ -1,26 +1,31 @@
 import { useState, type ReactNode } from "react";
 import { Menu, Bell, Search, Power } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { setLocallyAuthenticated, DEMO_FULL_NAME } from "@/lib/demo-user";
 
-export function AppShell({ title, children }: { title: string; children: ReactNode }) {
+export function AppShell({
+  title,
+  children,
+  routeLoading = false,
+}: {
+  title: string;
+  children: ReactNode;
+  routeLoading?: boolean;
+}) {
   const { user } = useAuth();
   useBankingRealtime(user?.id);
-
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
-      return data;
-    },
-  });
+  const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const fullName = profile?.full_name ?? user?.email ?? "User";
+  const fullName = user?.full_name ?? DEMO_FULL_NAME;
+
+  const handleSignOut = () => {
+    setLocallyAuthenticated(false);
+    navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <div className="min-h-screen flex bg-background w-full">
@@ -28,6 +33,13 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
 
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="sticky top-0 z-20 bg-white border-b border-border">
+          {/* Route transition indicator */}
+          <div
+            aria-hidden
+            className={`h-0.5 w-full overflow-hidden ${routeLoading ? "opacity-100" : "opacity-0"} transition-opacity`}
+          >
+            <div className="h-full w-1/3 bg-primary animate-[loadingbar_1.2s_ease-in-out_infinite]" />
+          </div>
           <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -51,10 +63,7 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
               </button>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/auth";
-                }}
+                onClick={handleSignOut}
                 className="p-2 text-muted-foreground hover:text-destructive"
                 aria-label="Sign out"
               >

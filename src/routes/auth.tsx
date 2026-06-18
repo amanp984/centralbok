@@ -1,135 +1,121 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Lock, ShieldCheck } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Lock, User as UserIcon, ShieldCheck } from "lucide-react";
+import {
+  DEMO_USERNAME,
+  DEMO_PASSWORD,
+  isLocallyAuthenticated,
+  setLocallyAuthenticated,
+} from "@/lib/demo-user";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Central Bank of India" },
-      { name: "description", content: "Sign in or create an account to access secure online banking." },
-    ],
-  }),
+  ssr: false,
+  head: () => ({ meta: [{ title: "Sign in — Central Bank of India" }] }),
+  beforeLoad: () => {
+    if (isLocallyAuthenticated()) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
-    });
-  }, [navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created — you can sign in now.");
-        setMode("signin");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/dashboard", replace: true });
-      }
-    } catch (err: any) {
-      toast.error(err.message ?? "Authentication failed");
-    } finally {
-      setLoading(false);
+    setSubmitting(true);
+    setError("");
+    if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+      setLocallyAuthenticated(true);
+      navigate({ to: "/dashboard" });
+    } else {
+      setError("Invalid credentials");
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm">
-            <span className="text-primary font-extrabold text-lg leading-none">CBI</span>
+    <div className="min-h-screen bg-[var(--banking-bg,#F4F7FC)] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground mb-3">
+            <ShieldCheck className="w-7 h-7" />
           </div>
-          <div className="leading-tight">
-            <div className="text-base sm:text-lg font-bold tracking-wide">Central Bank of India</div>
-            <div className="text-[10px] sm:text-xs text-white/80 uppercase tracking-wider">Central to You Since 1911</div>
-          </div>
-          <Link to="/" className="ml-auto text-sm text-white/80 hover:text-white">Back to home</Link>
+          <h1 className="text-2xl font-bold text-foreground">Central Bank of India</h1>
+          <p className="text-sm text-muted-foreground mt-1">Secure Internet Banking</p>
         </div>
-      </header>
 
-      <main className="flex-1 grid place-items-center px-4 py-12" style={{ background: "linear-gradient(135deg, #0b4da2 0%, #134a93 50%, #1c64c4 100%)" }}>
-        <div className="w-full max-w-md bg-card rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-foreground text-center">
-            {mode === "signin" ? "Sign in to your account" : "Create your account"}
-          </h2>
-          <p className="text-xs text-muted-foreground mt-1 mb-6 text-center">Secure Online Banking</p>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-6 space-y-5"
+        >
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Sign in</h2>
+            <p className="text-xs text-muted-foreground">
+              Use your banking username and password to continue.
+            </p>
+          </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            {mode === "signup" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">Full name</label>
-                <input
-                  required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
-              <input
-                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+          <div>
+            <Label htmlFor="username">Username</Label>
+            <div className="relative mt-1">
+              <UserIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="username"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                className="pl-9"
+                required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
-              <input
-                type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+          </div>
+
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <div className="relative mt-1">
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="pl-9"
+                required
               />
             </div>
-
-            <button
-              type="submit" disabled={loading}
-              className="w-full py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-md disabled:opacity-60"
-            >
-              {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-            </button>
-
-            <button
-              type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              className="w-full text-sm text-primary hover:underline"
-            >
-              {mode === "signin" ? "New to Central Bank? Create an account" : "Already have an account? Sign in"}
-            </button>
-          </form>
-        </div>
-      </main>
-
-      <footer className="bg-white border-t border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 text-success" />
-            <span className="font-medium">Secure SSL Connection</span>
           </div>
-          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-            <Lock className="w-3.5 h-3.5" /> © 2026 Central Bank of India
+
+          {error && (
+            <div className="text-sm text-destructive font-medium" role="alert">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+            {submitting ? "Signing in…" : "Login"}
+          </Button>
+
+          <div className="text-xs text-muted-foreground bg-secondary rounded-md p-3 text-center">
+            Demo credentials — username: <strong>demo123</strong> · password: <strong>demo123</strong>
           </div>
-        </div>
-      </footer>
+        </form>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          © 2026 Central Bank of India. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 }
