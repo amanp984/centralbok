@@ -67,17 +67,7 @@ function SettingsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [pwd, setPwd] = useState({ next: "", confirm: "" });
-  const pwdMut = useMutation({
-    mutationFn: async () => {
-      if (pwd.next.length < 8) throw new Error("Password must be at least 8 characters");
-      if (pwd.next !== pwd.confirm) throw new Error("Passwords do not match");
-      const { error } = await supabase.auth.updateUser({ password: pwd.next });
-      if (error) throw error;
-    },
-    onSuccess: () => { toast.success("Password updated"); setPwd({ next: "", confirm: "" }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  // Password management removed: this build has no auth provider (local demo gate only).
 
   if (isLoading) return <><Skeleton className="h-96 w-full max-w-4xl mx-auto" /></>;
 
@@ -114,14 +104,6 @@ function SettingsPage() {
             <Card>
               <Toggle label="Login alerts" desc="Email me when a new device signs in" checked={form.login_alerts} onChange={(v) => setForm({ ...form, login_alerts: v })} />
             </Card>
-            <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-6 mt-4">
-              <h3 className="font-bold mb-4 flex items-center gap-2"><Lock className="w-4 h-4" /> Change password</h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="New password"><Input type="password" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} /></Field>
-                <Field label="Confirm password"><Input type="password" value={pwd.confirm} onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })} /></Field>
-              </div>
-              <Button className="mt-4" disabled={pwdMut.isPending} onClick={() => pwdMut.mutate()}>Update password</Button>
-            </div>
           </TabsContent>
 
           <TabsContent value="preferences">

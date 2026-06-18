@@ -32,7 +32,8 @@ export function AppSidebar({
   const handleLogout = async () => {
     await qc.cancelQueries();
     qc.clear();
-    await supabase.auth.signOut();
+    const { setLocallyAuthenticated } = await import("@/lib/demo-user");
+    setLocallyAuthenticated(false);
     navigate({ to: "/auth", replace: true });
   };
 
