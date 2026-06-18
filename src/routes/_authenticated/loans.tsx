@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Landmark, Home, Car, GraduationCap, Briefcase, Smartphone, CheckCircle2 } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -26,7 +25,7 @@ const HISTORY = [
 
 function LoansPage() {
   return (
-    <AppShell title="Loans">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Stat label="Eligibility" value={formatINR(2500000)} sub="Pre-approved" />
@@ -73,7 +72,7 @@ function LoansPage() {
           </ul>
         </Section>
       </div>
-    </AppShell>
+    </>
   );
 }
 

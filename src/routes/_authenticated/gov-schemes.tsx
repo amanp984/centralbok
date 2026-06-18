@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Building2, Users, Sprout, GraduationCap, Heart, Home } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -22,7 +21,7 @@ const SCHEMES = [
 
 function GovSchemesPage() {
   return (
-    <AppShell title="Government Schemes">
+    <>
       <div className="space-y-6">
         <div className="bg-primary text-primary-foreground rounded-2xl p-6 shadow-[var(--shadow-card)]">
           <div className="flex items-start gap-4">
@@ -52,6 +51,6 @@ function GovSchemesPage() {
           ))}
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, Copy, ArrowLeftRight, FileText } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ function AccountsPage() {
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
 
   return (
-    <AppShell title="My Accounts">
+    <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-5xl">
         {isLoading && Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-56 w-full" />)}
         {accounts?.map((a) => {
@@ -55,6 +54,6 @@ function AccountsPage() {
           );
         })}
       </div>
-    </AppShell>
+    </>
   );
 }

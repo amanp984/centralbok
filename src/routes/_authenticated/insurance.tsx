@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Shield, Heart, Car, Home, Plane, Plus } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatINR, formatDate } from "@/lib/banking";
@@ -32,7 +31,7 @@ function InsurancePage() {
   const totalPremium = POLICIES.reduce((s, p) => s + p.premium, 0);
 
   return (
-    <AppShell title="Insurance">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Stat label="Active Policies" value={String(POLICIES.length)} />
@@ -103,7 +102,7 @@ function InsurancePage() {
           </table>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }
 

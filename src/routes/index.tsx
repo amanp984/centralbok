@@ -1,10 +1,16 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Lock, RefreshCw, Volume2, ShieldCheck, ChevronDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  DEMO_USERNAME,
+  DEMO_PASSWORD,
+  isLocallyAuthenticated,
+  setLocallyAuthenticated,
+} from "@/lib/demo-user";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Login — Central Bank of India Online Banking" },
@@ -18,17 +24,15 @@ function LoginPage() {
   const navigate = useNavigate();
   const [captcha, setCaptcha] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
   const [captchaInput, setCaptchaInput] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
-    });
+    if (isLocallyAuthenticated()) navigate({ to: "/dashboard", replace: true });
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (captchaInput.trim() !== captcha) {
       toast.error("Captcha doesn't match. Please try again.");
@@ -37,15 +41,13 @@ function LoginPage() {
       return;
     }
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+    if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+      setLocallyAuthenticated(true);
       navigate({ to: "/dashboard", replace: true });
-    } catch (err: any) {
-      toast.error(err.message ?? "Login failed");
+    } else {
+      toast.error("Invalid credentials");
       setCaptcha(Math.floor(100000 + Math.random() * 900000).toString());
       setCaptchaInput("");
-    } finally {
       setLoading(false);
     }
   };
@@ -102,11 +104,12 @@ function LoginPage() {
               <form className="space-y-5" onSubmit={handleLogin}>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
-                    Email <span className="text-destructive">*</span>
+                    Username <span className="text-destructive">*</span>
                   </label>
                   <input
-                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    type="text" required value={username} onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter username"
+                    autoComplete="username"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
@@ -144,22 +147,15 @@ function LoginPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <Link to="/auth" className="text-sm font-medium text-primary hover:underline">Trouble Logging In?</Link>
+                <div className="flex items-center justify-end pt-2">
                   <button type="submit" disabled={loading} className="px-10 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-md disabled:opacity-60">
                     {loading ? "Please wait…" : "Login"}
                   </button>
                 </div>
 
-                <div className="relative flex items-center py-2">
-                  <div className="flex-grow border-t border-border" />
-                  <span className="mx-4 text-sm text-muted-foreground">OR</span>
-                  <div className="flex-grow border-t border-border" />
+                <div className="text-xs text-muted-foreground bg-white/60 border border-border rounded-md p-3 text-center">
+                  Demo credentials — username: <strong>demo123</strong> · password: <strong>demo123</strong>
                 </div>
-
-                <Link to="/auth" className="block text-center w-full py-3 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary/5 transition-colors">
-                  Create New Account
-                </Link>
               </form>
             </div>
           </div>

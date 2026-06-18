@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { TrendingUp, TrendingDown, Briefcase, Plus } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/banking";
@@ -29,7 +28,7 @@ function InvestmentsPage() {
   const avgGain = HOLDINGS.reduce((s, h) => s + h.gain * h.value, 0) / total;
 
   return (
-    <AppShell title="Investments">
+    <>
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Stat label="Portfolio Value" value={formatINR(total)} icon={Briefcase} />
@@ -95,7 +94,7 @@ function InvestmentsPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }
 

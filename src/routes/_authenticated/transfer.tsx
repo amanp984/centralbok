@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { CheckCircle2, Download, ArrowRight, Zap, Clock, Building2 } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useBeneficiaries, qk, type Beneficiary, type Transaction } from "@/hooks/use-banking-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,8 +64,9 @@ function TransferPage() {
 
   const transferMut = useMutation({
     mutationFn: async () => {
-      if (!primary || !selected) throw new Error("Missing data");
+      if (!primary || !selected || !user) throw new Error("Missing data");
       const { data, error } = await supabase.rpc("execute_transfer" as never, {
+        p_user_id: user.id,
         p_account_id: primary.id,
         p_amount: amountNum,
         p_mode: mode,
@@ -103,10 +103,10 @@ function TransferPage() {
     setStep("confirm");
   };
 
-  if (aLoading || bLoading) return <AppShell title="Fund Transfer"><Skeleton className="h-96 w-full max-w-3xl mx-auto" /></AppShell>;
+  if (aLoading || bLoading) return <><Skeleton className="h-96 w-full max-w-3xl mx-auto" /></>;
 
   return (
-    <AppShell title="Fund Transfer">
+    <>
       <div className="max-w-3xl mx-auto">
         {/* Stepper */}
         <div className="flex items-center gap-2 mb-6 text-xs">
@@ -222,6 +222,6 @@ function TransferPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

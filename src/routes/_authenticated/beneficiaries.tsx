@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Plus, Pencil, Trash2, Star, Search, Send } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/hooks/use-auth";
 import { useBeneficiaries, qk, type Beneficiary } from "@/hooks/use-banking-data";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +70,7 @@ function BeneficiariesPage() {
   });
 
   return (
-    <AppShell title="Beneficiaries">
+    <>
       <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)]">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border-b border-border">
           <div>
@@ -138,7 +137,7 @@ function BeneficiariesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }
 
