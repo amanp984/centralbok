@@ -8,6 +8,8 @@ import {
   isLocallyAuthenticated,
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
+import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
+import { BrandLoader } from "@/components/BrandLoader";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -29,7 +31,11 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isLocallyAuthenticated()) navigate({ to: "/dashboard", replace: true });
+    if (isLocallyAuthenticated() && isOtpVerified()) {
+      navigate({ to: "/dashboard", replace: true });
+    } else if (isLocallyAuthenticated()) {
+      navigate({ to: "/otp", replace: true });
+    }
   }, [navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -40,15 +46,15 @@ function LoginPage() {
       setCaptchaInput("");
       return;
     }
-    setLoading(true);
     if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+      setLoading(true);
       setLocallyAuthenticated(true);
-      navigate({ to: "/dashboard", replace: true });
+      setOtpVerified(false);
+      setTimeout(() => navigate({ to: "/otp", replace: true }), 1500);
     } else {
-      toast.error("Invalid credentials");
+      toast.error("Invalid username or password");
       setCaptcha(Math.floor(100000 + Math.random() * 900000).toString());
       setCaptchaInput("");
-      setLoading(false);
     }
   };
 
