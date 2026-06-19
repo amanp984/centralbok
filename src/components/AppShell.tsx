@@ -1,10 +1,14 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, Bell, Search, Power } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
 import { setLocallyAuthenticated, DEMO_FULL_NAME } from "@/lib/demo-user";
+import { setOtpVerified } from "@/lib/otp-pool";
+import { BrandLoader } from "./BrandLoader";
+
+const MIN_OVERLAY_MS = 300;
 
 export function AppShell({
   title,
@@ -22,9 +26,35 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const fullName = user?.full_name ?? DEMO_FULL_NAME;
 
+  // Show a brief overlay on every route change to mask white flashes.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const firstRender = useRef(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setOverlayVisible(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setOverlayVisible(false), MIN_OVERLAY_MS);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [pathname]);
+
+  // Also extend the overlay while the router is actually still loading.
+  useEffect(() => {
+    if (routeLoading) setOverlayVisible(true);
+    else if (!timerRef.current) setOverlayVisible(false);
+  }, [routeLoading]);
+
   const handleSignOut = () => {
+    setOtpVerified(false);
     setLocallyAuthenticated(false);
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
   return (
@@ -80,6 +110,8 @@ export function AppShell({
           <span>Secure Banking • SSL Encrypted</span>
         </footer>
       </div>
+
+      <BrandLoader variant="overlay" visible={overlayVisible} />
     </div>
   );
 }
