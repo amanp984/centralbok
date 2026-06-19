@@ -122,6 +122,7 @@ function AuthPage() {
           © 2026 Central Bank of India. All rights reserved.
         </p>
       </div>
+      {submitting && <BrandLoader message="Securing your session…" />}
     </div>
   );
 }
