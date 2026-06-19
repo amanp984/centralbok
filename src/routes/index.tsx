@@ -184,6 +184,8 @@ function LoginPage() {
           </div>
         </div>
       </footer>
+
+      {loading && <BrandLoader message="Securing your session…" />}
     </div>
   );
 }
