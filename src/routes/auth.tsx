@@ -11,12 +11,18 @@ import {
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
 
+import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
+import { BrandLoader } from "@/components/BrandLoader";
+
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({ meta: [{ title: "Sign in — Central Bank of India" }] }),
   beforeLoad: () => {
-    if (isLocallyAuthenticated()) {
+    if (isLocallyAuthenticated() && isOtpVerified()) {
       throw redirect({ to: "/dashboard" });
+    }
+    if (isLocallyAuthenticated()) {
+      throw redirect({ to: "/otp" });
     }
   },
   component: AuthPage,
@@ -31,14 +37,14 @@ function AuthPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setError("");
     if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+      setSubmitting(true);
       setLocallyAuthenticated(true);
-      navigate({ to: "/dashboard" });
+      setOtpVerified(false);
+      setTimeout(() => navigate({ to: "/otp", replace: true }), 1500);
     } else {
-      setError("Invalid credentials");
-      setSubmitting(false);
+      setError("Invalid username or password");
     }
   };
 
@@ -116,6 +122,7 @@ function AuthPage() {
           © 2026 Central Bank of India. All rights reserved.
         </p>
       </div>
+      {submitting && <BrandLoader message="Securing your session…" />}
     </div>
   );
 }

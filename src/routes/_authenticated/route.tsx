@@ -1,12 +1,16 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { isLocallyAuthenticated } from "@/lib/demo-user";
+import { isOtpVerified } from "@/lib/otp-pool";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: () => {
     if (!isLocallyAuthenticated()) {
-      throw redirect({ to: "/auth" });
+      throw redirect({ to: "/" });
+    }
+    if (!isOtpVerified()) {
+      throw redirect({ to: "/otp" });
     }
   },
   component: AuthenticatedLayout,
