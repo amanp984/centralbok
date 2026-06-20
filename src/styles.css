@@ -102,3 +102,9 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes brand-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.95; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.35)); }
+  50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45)); }
+}
+
