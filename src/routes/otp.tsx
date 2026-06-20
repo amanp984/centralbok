@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, RotateCw } from "lucide-react";
 import { isLocallyAuthenticated } from "@/lib/demo-user";
 import { verifyAndConsumeOtp, setOtpVerified, isOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "@/components/BrandLoader";
@@ -18,17 +18,36 @@ export const Route = createFileRoute("/otp")({
 });
 
 const LEN = 6;
+const COUNTDOWN_START = 54;
+const MAX_ATTEMPTS = 3;
 
 function OtpPage() {
   const navigate = useNavigate();
   const [digits, setDigits] = useState<string[]>(Array(LEN).fill(""));
   const [error, setError] = useState<string>("");
   const [verifying, setVerifying] = useState(false);
+  const [seconds, setSeconds] = useState(COUNTDOWN_START);
+  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
+  const [resendKey, setResendKey] = useState(0);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
+  useEffect(() => { refs.current[0]?.focus(); }, []);
+
   useEffect(() => {
+    setSeconds(COUNTDOWN_START);
+    const id = setInterval(() => {
+      setSeconds((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [resendKey]);
+
+  const resetStep = (msg?: string) => {
+    setAttemptsLeft(MAX_ATTEMPTS);
+    setDigits(Array(LEN).fill(""));
+    setResendKey((k) => k + 1);
+    setError(msg ?? "");
     refs.current[0]?.focus();
-  }, []);
+  };
 
   const setDigit = (i: number, v: string) => {
     const next = [...digits];
@@ -38,29 +57,22 @@ function OtpPage() {
 
   const handleChange = (i: number, raw: string) => {
     const v = raw.replace(/\D/g, "");
-    if (!v) {
-      setDigit(i, "");
-      return;
-    }
+    if (!v) { setDigit(i, ""); return; }
     if (v.length === 1) {
       setDigit(i, v);
       if (i < LEN - 1) refs.current[i + 1]?.focus();
     } else {
-      // Allow pasting / fast typing
       const chars = v.slice(0, LEN - i).split("");
       const next = [...digits];
       chars.forEach((c, k) => (next[i + k] = c));
       setDigits(next);
-      const last = Math.min(i + chars.length, LEN - 1);
-      refs.current[last]?.focus();
+      refs.current[Math.min(i + chars.length, LEN - 1)]?.focus();
     }
     setError("");
   };
 
   const handleKeyDown = (i: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !digits[i] && i > 0) {
-      refs.current[i - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !digits[i] && i > 0) refs.current[i - 1]?.focus();
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
@@ -76,10 +88,8 @@ function OtpPage() {
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
     const code = digits.join("");
-    if (code.length !== LEN) {
-      setError("Please enter the 6 digit OTP.");
-      return;
-    }
+    if (code.length !== LEN) { setError("Please enter the 6 digit OTP."); return; }
+    if (seconds === 0) { setError("OTP expired. Please request a new one."); return; }
     setVerifying(true);
     setError("");
     setTimeout(() => {
@@ -92,13 +102,24 @@ function OtpPage() {
       setVerifying(false);
       if (res.reason === "used") {
         setError("OTP already used. Please enter a new OTP.");
-      } else {
-        setError("Invalid OTP. Please try again.");
+        setDigits(Array(LEN).fill(""));
+        refs.current[0]?.focus();
+        return;
       }
+      const remaining = attemptsLeft - 1;
+      setAttemptsLeft(remaining);
       setDigits(Array(LEN).fill(""));
       refs.current[0]?.focus();
-    }, 700);
+      if (remaining <= 0) {
+        resetStep("Too many invalid attempts. A fresh OTP has been issued.");
+      } else {
+        setError(`Invalid OTP. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`);
+      }
+    }, 600);
   };
+
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
 
   return (
     <div
@@ -122,9 +143,14 @@ function OtpPage() {
           onSubmit={handleVerify}
           className="bg-card rounded-2xl border border-border shadow-2xl p-6 space-y-5"
         >
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 text-success" />
-            <span>One-time password</span>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-success" />
+              <span>One-time password</span>
+            </div>
+            <div className={`font-mono font-semibold ${seconds <= 10 ? "text-destructive" : "text-foreground"}`}>
+              {mm}:{ss}
+            </div>
           </div>
 
           <div className="flex justify-between gap-2" onPaste={handlePaste}>
@@ -138,7 +164,7 @@ function OtpPage() {
                 value={d}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
-                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-semibold rounded-lg border-2 border-border bg-white text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-11 h-13 sm:w-14 sm:h-16 flex-1 text-center text-xl font-semibold rounded-lg border-2 border-border bg-white text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 aria-label={`Digit ${i + 1}`}
               />
             ))}
@@ -152,19 +178,27 @@ function OtpPage() {
 
           <button
             type="submit"
-            disabled={verifying}
+            disabled={verifying || seconds === 0}
             className="w-full py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors shadow-md disabled:opacity-60"
           >
             {verifying ? "Verifying…" : "Verify & Continue"}
           </button>
 
-          <p className="text-xs text-muted-foreground text-center">
-            Each OTP is single-use. The pool resets automatically when exhausted.
-          </p>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Attempts remaining: <strong className="text-foreground">{attemptsLeft}</strong></span>
+            <button
+              type="button"
+              onClick={() => resetStep()}
+              disabled={seconds > 0}
+              className="inline-flex items-center gap-1 text-primary disabled:text-muted-foreground/60"
+            >
+              <RotateCw className="w-3 h-3" /> Resend OTP
+            </button>
+          </div>
         </form>
       </div>
 
-      {verifying && <BrandLoader message="Verifying OTP…" />}
+      {verifying && <BrandLoader message="Verifying OTP..." />}
     </div>
   );
 }
