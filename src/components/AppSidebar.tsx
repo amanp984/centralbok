@@ -1,11 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutGrid, Wallet, ArrowLeftRight, PiggyBank, Landmark, TrendingUp,
-  Shield, BarChart3, FileText, Building2, LogOut, Users, Settings,
+  Shield, BarChart3, FileText, Building2, LogOut, Users, Settings, Gauge,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { setLocallyAuthenticated } from "@/lib/demo-user";
+import { setOtpVerified } from "@/lib/otp-pool";
+
 
 const navItems = [
   { label: "Dashboard", icon: LayoutGrid, to: "/dashboard" },
@@ -19,8 +21,10 @@ const navItems = [
   { label: "PFM", icon: BarChart3, to: "/pfm" },
   { label: "Statements", icon: FileText, to: "/statements" },
   { label: "Government Schemes", icon: Building2, to: "/gov-schemes" },
+  { label: "Limits", icon: Gauge, to: "/limits" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ] as const;
+
 
 export function AppSidebar({
   open, onClose, fullName,
@@ -32,10 +36,11 @@ export function AppSidebar({
   const handleLogout = async () => {
     await qc.cancelQueries();
     qc.clear();
-    const { setLocallyAuthenticated } = await import("@/lib/demo-user");
+    setOtpVerified(false);
     setLocallyAuthenticated(false);
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/", replace: true });
   };
+
 
   const initials = fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "U";
 

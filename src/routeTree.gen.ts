@@ -18,6 +18,7 @@ import { Route as AuthenticatedStatementsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedPfmRouteImport } from './routes/_authenticated/pfm'
 import { Route as AuthenticatedLoansRouteImport } from './routes/_authenticated/loans'
+import { Route as AuthenticatedLimitsRouteImport } from './routes/_authenticated/limits'
 import { Route as AuthenticatedInvestmentsRouteImport } from './routes/_authenticated/investments'
 import { Route as AuthenticatedInsuranceRouteImport } from './routes/_authenticated/insurance'
 import { Route as AuthenticatedGovSchemesRouteImport } from './routes/_authenticated/gov-schemes'
@@ -70,6 +71,11 @@ const AuthenticatedLoansRoute = AuthenticatedLoansRouteImport.update({
   path: '/loans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLimitsRoute = AuthenticatedLimitsRouteImport.update({
+  id: '/limits',
+  path: '/limits',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInvestmentsRoute =
   AuthenticatedInvestmentsRouteImport.update({
     id: '/investments',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/gov-schemes': typeof AuthenticatedGovSchemesRoute
   '/insurance': typeof AuthenticatedInsuranceRoute
   '/investments': typeof AuthenticatedInvestmentsRoute
+  '/limits': typeof AuthenticatedLimitsRoute
   '/loans': typeof AuthenticatedLoansRoute
   '/pfm': typeof AuthenticatedPfmRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/gov-schemes': typeof AuthenticatedGovSchemesRoute
   '/insurance': typeof AuthenticatedInsuranceRoute
   '/investments': typeof AuthenticatedInvestmentsRoute
+  '/limits': typeof AuthenticatedLimitsRoute
   '/loans': typeof AuthenticatedLoansRoute
   '/pfm': typeof AuthenticatedPfmRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/_authenticated/gov-schemes': typeof AuthenticatedGovSchemesRoute
   '/_authenticated/insurance': typeof AuthenticatedInsuranceRoute
   '/_authenticated/investments': typeof AuthenticatedInvestmentsRoute
+  '/_authenticated/limits': typeof AuthenticatedLimitsRoute
   '/_authenticated/loans': typeof AuthenticatedLoansRoute
   '/_authenticated/pfm': typeof AuthenticatedPfmRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/gov-schemes'
     | '/insurance'
     | '/investments'
+    | '/limits'
     | '/loans'
     | '/pfm'
     | '/settings'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/gov-schemes'
     | '/insurance'
     | '/investments'
+    | '/limits'
     | '/loans'
     | '/pfm'
     | '/settings'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gov-schemes'
     | '/_authenticated/insurance'
     | '/_authenticated/investments'
+    | '/_authenticated/limits'
     | '/_authenticated/loans'
     | '/_authenticated/pfm'
     | '/_authenticated/settings'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLoansRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/limits': {
+      id: '/_authenticated/limits'
+      path: '/limits'
+      fullPath: '/limits'
+      preLoaderRoute: typeof AuthenticatedLimitsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/investments': {
       id: '/_authenticated/investments'
       path: '/investments'
@@ -348,6 +367,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovSchemesRoute: typeof AuthenticatedGovSchemesRoute
   AuthenticatedInsuranceRoute: typeof AuthenticatedInsuranceRoute
   AuthenticatedInvestmentsRoute: typeof AuthenticatedInvestmentsRoute
+  AuthenticatedLimitsRoute: typeof AuthenticatedLimitsRoute
   AuthenticatedLoansRoute: typeof AuthenticatedLoansRoute
   AuthenticatedPfmRoute: typeof AuthenticatedPfmRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -363,6 +383,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovSchemesRoute: AuthenticatedGovSchemesRoute,
   AuthenticatedInsuranceRoute: AuthenticatedInsuranceRoute,
   AuthenticatedInvestmentsRoute: AuthenticatedInvestmentsRoute,
+  AuthenticatedLimitsRoute: AuthenticatedLimitsRoute,
   AuthenticatedLoansRoute: AuthenticatedLoansRoute,
   AuthenticatedPfmRoute: AuthenticatedPfmRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
