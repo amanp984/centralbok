@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
+import { DEMO_PROFILE } from "@/lib/demo-user";
+
 import { useBankingModal } from "@/components/modals/BankingModalProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -44,19 +46,39 @@ function Dashboard() {
               <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-white/5" />
               <div className="absolute -right-20 -top-10 w-32 h-32 rounded-full bg-white/5" />
               <div className="relative">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-sm text-white/80">My {primary?.account_type ?? "Savings"} A/C</div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm text-white/80">{DEMO_PROFILE.accountType}</div>
                     <div className="inline-block mt-2 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded">PRIMARY</div>
                   </div>
-                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center">
+                  <div className="w-12 h-12 shrink-0 bg-white rounded flex items-center justify-center">
                     <span className="text-primary text-xs font-extrabold">CBI</span>
                   </div>
                 </div>
-                <div className="mt-5 font-mono text-xl sm:text-2xl tracking-[0.2em]">
+                <div className="mt-4 font-mono text-lg sm:text-xl tracking-[0.18em] break-all">
                   {accountsLoading ? "Loading…" : primary ? maskAccount(primary.account_number) : "—"}
                 </div>
-                <div className="mt-5 text-sm text-white/80">Account Balance</div>
+
+                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:text-xs text-white/90">
+                  <div className="min-w-0">
+                    <dt className="text-white/60 uppercase tracking-wider">Account Holder</dt>
+                    <dd className="font-semibold truncate">{DEMO_PROFILE.fullName}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-white/60 uppercase tracking-wider">CIF</dt>
+                    <dd className="font-semibold truncate">{DEMO_PROFILE.cif}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-white/60 uppercase tracking-wider">IFSC</dt>
+                    <dd className="font-semibold truncate">{DEMO_PROFILE.ifsc}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-white/60 uppercase tracking-wider">Branch</dt>
+                    <dd className="font-semibold truncate">{DEMO_PROFILE.branch}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 text-xs text-white/80">Available Balance</div>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="text-2xl font-bold">
                     {accountsLoading ? <Skeleton className="h-8 w-40 bg-white/20" /> : showBalance ? formatINR(primary?.balance ?? 0) : "₹ ●●●●●●●●"}
@@ -66,7 +88,7 @@ function Dashboard() {
                     {showBalance ? "Hide" : "Show"}
                   </button>
                 </div>
-                <div className="mt-6 pt-5 border-t border-white/20 grid grid-cols-3 gap-2 text-center">
+                <div className="mt-5 pt-4 border-t border-white/20 grid grid-cols-3 gap-2 text-center">
                   <CardAction icon={FileText} label="View Statement" to="/statements" />
                   <CardAction
                     icon={CreditCard} label="Manage Debit Card"
@@ -77,6 +99,7 @@ function Dashboard() {
               </div>
             </div>
           </section>
+
 
           {/* Payments */}
           <section>
