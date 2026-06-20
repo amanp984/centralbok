@@ -1,0 +1,2 @@
+UPDATE public.profiles SET full_name = 'Rambabu Prajapati' WHERE id = '00000000-0000-0000-0000-0000000000d1';
+UPDATE public.accounts SET account_type = 'CURRENT' WHERE user_id = '00000000-0000-0000-0000-0000000000d1';
