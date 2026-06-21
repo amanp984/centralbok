@@ -53,9 +53,11 @@ function AuthPage() {
     <div className="min-h-screen bg-[var(--banking-bg,#F4F7FC)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground mb-3">
-            <ShieldCheck className="w-7 h-7" />
-          </div>
+          <img
+            src={logoAsset.url}
+            alt="Central Bank of India"
+            className="w-20 h-20 mx-auto object-contain mb-3"
+          />
           <h1 className="text-2xl font-bold text-foreground">Central Bank of India</h1>
           <p className="text-sm text-muted-foreground mt-1">Secure Internet Banking</p>
         </div>
