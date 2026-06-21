@@ -31,10 +31,11 @@ function SettingsPage() {
       <Tabs defaultValue="profile">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Details</TabsTrigger>
-          <TabsTrigger value="limits">Limits</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="kyc">KYC</TabsTrigger>
+          <TabsTrigger value="limits">Limits</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -112,6 +113,17 @@ function SettingsPage() {
             <div className="mt-4 flex items-center gap-2 text-xs text-success">
               <ShieldCheck className="w-4 h-4" /> KYC is up to date. No action required.
             </div>
+          </Card>
+        </TabsContent>
+        <TabsContent value="notifications">
+          <Card title="Notification Preferences">
+            <ul className="space-y-3 text-sm">
+              <Sec label="SMS Alerts" value="Enabled" />
+              <Sec label="Email Alerts" value="Enabled" />
+              <Sec label="Push Notifications" value="Enabled" />
+              <Sec label="Security Alerts" value="Always On" />
+              <Sec label="Promotional Offers" value="Disabled" />
+            </ul>
           </Card>
         </TabsContent>
       </Tabs>

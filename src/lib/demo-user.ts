@@ -10,8 +10,8 @@ export const AUTH_STORAGE_KEY = "bank_demo_auth";
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   fullName: DEMO_FULL_NAME,
-  customerId: "CBI8923471",
-  cif: "92837461",
+  customerId: "CBI8923451",
+  cif: "892345126789",
   pan: "ABCDE1234F",
   mobile: "+91 98XXXXXX72",
   email: DEMO_EMAIL,
@@ -19,16 +19,16 @@ export const DEMO_PROFILE = {
   city: "Mumbai",
   state: "Maharashtra",
   pinCode: "400069",
-  branch: "Andheri East — Mumbai",
-  branchCode: "0280001",
-  ifsc: "CBIN0280001",
+  branch: "Andheri East Mumbai",
+  branchCode: "0282734",
+  ifsc: "CBIN0282734",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
   kycReference: "KYC-CBI-20240514-998271",
   kycCompletionDate: "2024-05-14",
   openingDate: "2018-03-22",
-  micr: "400016024",
+  micr: "400016027",
 } as const;
 
 // Per-mode daily limits (₹).
