@@ -43,8 +43,6 @@ export function AppSidebar({
   };
 
 
-  const initials = fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "U";
-
   return (
     <>
       <aside
@@ -54,9 +52,11 @@ export function AppSidebar({
       >
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-3">
-              <span className="text-2xl font-bold">{initials}</span>
-            </div>
+            <img
+              src={logoAsset.url}
+              alt="Central Bank of India"
+              className="w-20 h-20 object-contain mb-3 mix-blend-screen drop-shadow"
+            />
             <div className="font-bold text-sm uppercase truncate w-full">{fullName}</div>
             <div className="text-[11px] text-white/70 mt-1">Welcome back</div>
           </div>
