@@ -115,6 +115,17 @@ function SettingsPage() {
             </div>
           </Card>
         </TabsContent>
+        <TabsContent value="notifications">
+          <Card title="Notification Preferences">
+            <ul className="space-y-3 text-sm">
+              <Sec label="SMS Alerts" value="Enabled" />
+              <Sec label="Email Alerts" value="Enabled" />
+              <Sec label="Push Notifications" value="Enabled" />
+              <Sec label="Security Alerts" value="Always On" />
+              <Sec label="Promotional Offers" value="Disabled" />
+            </ul>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
