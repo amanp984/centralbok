@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, User as UserIcon, ShieldCheck } from "lucide-react";
+import { Lock, User as UserIcon } from "lucide-react";
 import {
   DEMO_USERNAME,
   DEMO_PASSWORD,
@@ -13,6 +13,7 @@ import {
 
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "@/components/BrandLoader";
+import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
