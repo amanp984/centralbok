@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
 import { DEMO_PROFILE } from "@/lib/demo-user";
+import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 import { useBankingModal } from "@/components/modals/BankingModalProvider";
 import { Skeleton } from "@/components/ui/skeleton";
