@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OtpRouteImport } from './routes/otp'
+import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,9 +31,24 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBeneficiariesRouteImport } from './routes/_authenticated/beneficiaries'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OtpRoute = OtpRouteImport.update({
   id: '/otp',
   path: '/otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisclaimerRoute = DisclaimerRouteImport.update({
+  id: '/disclaimer',
+  path: '/disclaimer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -123,7 +141,10 @@ const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/otp': typeof OtpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/accounts': typeof AuthenticatedAccountsRoute
   '/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -142,7 +163,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/otp': typeof OtpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/accounts': typeof AuthenticatedAccountsRoute
   '/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -163,7 +187,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/otp': typeof OtpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
   '/_authenticated/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -184,7 +211,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/disclaimer'
     | '/otp'
+    | '/privacy'
+    | '/terms'
     | '/accounts'
     | '/beneficiaries'
     | '/dashboard'
@@ -203,7 +233,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/disclaimer'
     | '/otp'
+    | '/privacy'
+    | '/terms'
     | '/accounts'
     | '/beneficiaries'
     | '/dashboard'
@@ -223,7 +256,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/disclaimer'
     | '/otp'
+    | '/privacy'
+    | '/terms'
     | '/_authenticated/accounts'
     | '/_authenticated/beneficiaries'
     | '/_authenticated/dashboard'
@@ -244,17 +280,41 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DisclaimerRoute: typeof DisclaimerRoute
   OtpRoute: typeof OtpRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   ApiSmsRoute: typeof ApiSmsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/otp': {
       id: '/otp'
       path: '/otp'
       fullPath: '/otp'
       preLoaderRoute: typeof OtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disclaimer': {
+      id: '/disclaimer'
+      path: '/disclaimer'
+      fullPath: '/disclaimer'
+      preLoaderRoute: typeof DisclaimerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -418,7 +478,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DisclaimerRoute: DisclaimerRoute,
   OtpRoute: OtpRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   ApiSmsRoute: ApiSmsRoute,
 }
 export const routeTree = rootRouteImport
