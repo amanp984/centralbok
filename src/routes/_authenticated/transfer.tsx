@@ -67,7 +67,17 @@ function TransferPage() {
   const selected = beneficiaries?.find((b) => b.id === beneficiaryId);
   const amountNum = parseFloat(amount || "0");
 
-  if (aLoading || bLoading) return <div className="max-w-3xl mx-auto"><Skeleton className="h-96 w-full" /></div>;
+  const used = (m: string) => (transactions ?? [])
+    .filter((t) => t.direction === "debit" && t.mode === m)
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const usage = useMemo(() => ({
+    IMPS: { limit: DEMO_LIMITS.imps, used: used("IMPS") },
+    NEFT: { limit: DEMO_LIMITS.neft, used: used("NEFT") },
+    RTGS: { limit: DEMO_LIMITS.rtgs, used: used("RTGS") },
+    UPI:  { limit: DEMO_LIMITS.upi,  used: used("UPI")  },
+  }), [transactions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const recent = (transactions ?? []).slice(0, 10);
+
 
   const proceedDetails = () => {
     setFormError("");
