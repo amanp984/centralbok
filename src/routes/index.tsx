@@ -72,7 +72,7 @@ function LoginPage() {
               />
             </div>
             <div className="leading-tight hidden sm:block">
-              <div className="text-[10px] text-white/80 uppercase tracking-wider">Central to you since 1911</div>
+              <div className="text-[10px] text-white/80 uppercase tracking-wider">{"\n"}</div>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
