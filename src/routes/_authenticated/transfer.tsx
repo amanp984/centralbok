@@ -36,8 +36,9 @@ function TransferPage() {
   const { beneficiaryId: initialBenef } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: accounts, isLoading: aLoading } = useAccounts(user?.id);
-  const { data: beneficiaries, isLoading: bLoading } = useBeneficiaries(user?.id);
+  const { data: accounts } = useAccounts(user?.id);
+  const { data: beneficiaries } = useBeneficiaries(user?.id);
+  const { data: transactions } = useTransactions(user?.id, 200);
 
   const [step, setStep] = useState<Step>("details");
   const [accountId, setAccountId] = useState<string>("");
