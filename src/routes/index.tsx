@@ -10,7 +10,7 @@ import {
 } from "@/lib/demo-user";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "@/components/BrandLoader";
-import cbiOfficialLogo from "@/assets/cbi-logo-new.png.asset.json";
+import cbiOfficialLogo from "@/assets/cbi-official-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -68,7 +68,7 @@ function LoginPage() {
               <img
                 src={cbiOfficialLogo.url}
                 alt="Central Bank of India"
-                className="h-15 sm:h-[4.375rem] w-auto object-contain"
+                className="h-12 sm:h-14 w-auto object-contain"
               />
             </div>
             <div className="leading-tight hidden sm:block">
