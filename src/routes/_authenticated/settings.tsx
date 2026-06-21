@@ -31,10 +31,11 @@ function SettingsPage() {
       <Tabs defaultValue="profile">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="account">Account Details</TabsTrigger>
-          <TabsTrigger value="limits">Limits</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="kyc">KYC</TabsTrigger>
+          <TabsTrigger value="limits">Limits</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
