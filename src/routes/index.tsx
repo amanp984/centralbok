@@ -64,11 +64,11 @@ function LoginPage() {
       <header className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-md p-1.5 shadow-sm flex items-center">
+            <div className="flex items-center">
               <img
                 src={cbiOfficialLogo.url}
                 alt="Central Bank of India"
-                className="h-10 sm:h-12 w-auto object-contain"
+                className="h-12 sm:h-14 w-auto object-contain"
               />
             </div>
             <div className="leading-tight hidden sm:block">
