@@ -3,6 +3,8 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
 import { formatDateTime, formatINR } from "./banking";
+import { DEMO_PROFILE } from "./demo-user";
+import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 type ExportMeta = {
   customerName: string;
