@@ -51,9 +51,11 @@ function Dashboard() {
                     <div className="text-sm text-white/80">{DEMO_PROFILE.accountType}</div>
                     <div className="inline-block mt-2 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded">PRIMARY</div>
                   </div>
-                  <div className="w-12 h-12 shrink-0 bg-white rounded flex items-center justify-center">
-                    <span className="text-primary text-xs font-extrabold">CBI</span>
-                  </div>
+                  <img
+                    src={logoAsset.url}
+                    alt="CBI"
+                    className="w-12 h-12 shrink-0 object-contain mix-blend-screen"
+                  />
                 </div>
                 <div className="mt-4 font-mono text-lg sm:text-xl tracking-[0.18em] break-all">
                   {accountsLoading ? "Loading…" : primary ? maskAccount(primary.account_number) : "—"}
