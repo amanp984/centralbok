@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { setLocallyAuthenticated } from "@/lib/demo-user";
 import { setOtpVerified } from "@/lib/otp-pool";
+import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 
 const navItems = [
