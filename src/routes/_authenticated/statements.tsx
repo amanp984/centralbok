@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatINR, formatDateTime, maskAccount } from "@/lib/banking";
 import { exportTransactionsCSV, exportTransactionsExcel, exportTransactionsPDF } from "@/lib/exports";
+import { DEMO_PROFILE } from "@/lib/demo-user";
 
 export const Route = createFileRoute("/_authenticated/statements")({
   head: () => ({ meta: [{ title: "Statements — Central Bank of India" }] }),
