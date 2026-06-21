@@ -10,6 +10,10 @@ type ExportMeta = {
   customerName: string;
   accountNumber: string;
   ifsc: string;
+  cif?: string;
+  branch?: string;
+  openingBalance?: number;
+  closingBalance?: number;
   fromDate?: string;
   toDate?: string;
 };
