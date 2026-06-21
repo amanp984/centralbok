@@ -62,10 +62,17 @@ function StatementsPage() {
     return a;
   }, { credit: 0, debit: 0 });
 
+  const opening = filtered.length ? Number(filtered[filtered.length - 1].running_balance ?? 0) - (filtered[filtered.length - 1].direction === "credit" ? Number(filtered[filtered.length - 1].amount) : -Number(filtered[filtered.length - 1].amount)) : Number(primary?.balance ?? 0);
+  const closing = filtered.length ? Number(filtered[0].running_balance ?? 0) : Number(primary?.balance ?? 0);
+
   const meta = {
-    customerName: user?.email ?? "Customer",
+    customerName: DEMO_PROFILE.fullName,
     accountNumber: primary?.account_number ?? "",
-    ifsc: primary?.ifsc ?? "",
+    ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
+    cif: DEMO_PROFILE.cif,
+    branch: DEMO_PROFILE.branch,
+    openingBalance: opening,
+    closingBalance: closing,
     fromDate: from,
     toDate: to,
   };
