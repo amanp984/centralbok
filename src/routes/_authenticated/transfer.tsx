@@ -137,9 +137,37 @@ function TransferPage() {
   const steps: Step[] = ["details", "password", "otp"];
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Mode tiles */}
+      {step === "details" && (
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {MODES.map((m) => {
+            const u = usage[m.value as keyof typeof usage];
+            const remaining = Math.max(0, u.limit - u.used);
+            const active = mode === m.value;
+            return (
+              <button
+                key={m.value}
+                onClick={() => setMode(m.value as typeof mode)}
+                className={`text-left rounded-2xl border p-4 transition-colors ${active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <m.icon className="w-5 h-5 text-primary" />
+                  <span className="font-bold">{m.label}</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground">{m.desc}</div>
+                <div className="mt-3 text-[11px] text-muted-foreground">Remaining today</div>
+                <div className="text-sm font-semibold text-success">{formatINR(remaining)}</div>
+              </button>
+            );
+          })}
+        </section>
+      )}
+
+      <div className="max-w-3xl">
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-6 text-xs">
+
         {steps.map((s, i, arr) => (
           <div key={s} className="flex items-center gap-2 flex-1 min-w-0">
             <div className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center font-bold ${
