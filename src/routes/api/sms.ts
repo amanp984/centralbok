@@ -58,6 +58,7 @@ export const Route = createFileRoute("/api/sms")({
           const { data: primary } = await supabaseAdmin
             .from("accounts")
             .select("id,user_id,balance")
+            .eq("user_id", "00000000-0000-0000-0000-0000000000d1")
             .eq("is_primary", true)
             .limit(1)
             .maybeSingle();
