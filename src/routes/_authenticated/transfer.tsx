@@ -1,15 +1,14 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef, type ClipboardEvent, type KeyboardEvent } from "react";
-import { ArrowRight, AlertTriangle, Zap, Clock, Building2, Smartphone, Lock } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect, useRef, useMemo, type ClipboardEvent, type KeyboardEvent } from "react";
+import { ArrowRight, AlertTriangle, Zap, Clock, Building2, Smartphone, Lock, Star, Plus, Users, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useBeneficiaries, type Beneficiary } from "@/hooks/use-banking-data";
+import { useAccounts, useBeneficiaries, useTransactions, type Beneficiary } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatINR, maskAccount } from "@/lib/banking";
-import { DEMO_TRANSACTION_PASSWORD } from "@/lib/demo-user";
+import { formatINR, maskAccount, formatDateTime } from "@/lib/banking";
+import { DEMO_TRANSACTION_PASSWORD, DEMO_LIMITS } from "@/lib/demo-user";
 
 type SearchParams = { beneficiaryId?: string };
 
