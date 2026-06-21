@@ -31,7 +31,7 @@ export function BrandLoader({
         src={logoAsset.url}
         alt="Central Bank of India"
         className={[
-          "object-contain drop-shadow-2xl",
+          "object-contain mix-blend-screen drop-shadow-2xl",
           "animate-[brand-pulse_1.6s_ease-in-out_infinite]",
           isFullscreen
             ? "w-[120px] h-[120px] sm:w-[180px] sm:h-[180px]"
