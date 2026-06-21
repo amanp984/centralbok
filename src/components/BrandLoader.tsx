@@ -1,10 +1,10 @@
-import logoAsset from "@/assets/brand-logo.png.asset.json";
+import bannerAsset from "@/assets/cbi-banner.png.asset.json";
 
 type Variant = "fullscreen" | "overlay";
 
 /**
- * Translucent, blurred loader that keeps the underlying page visible.
- * Never shows a full black screen — uses a dim glass overlay everywhere.
+ * Glass loader showing the Central Bank banner over the blurred page.
+ * Keeps the current page visible — never shows a black screen.
  */
 export function BrandLoader({
   message = "Securing your session...",
@@ -23,21 +23,23 @@ export function BrandLoader({
       className={[
         "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5",
         "transition-opacity duration-300 ease-out",
-        "bg-black/55 backdrop-blur-[10px]",
+        "bg-slate-950/45 backdrop-blur-[10px]",
         visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
       ].join(" ")}
     >
-      <img
-        src={logoAsset.url}
-        alt="Central Bank of India"
+      <div
         className={[
-          "object-contain mix-blend-screen drop-shadow-2xl",
+          "rounded-xl bg-white/95 shadow-2xl ring-1 ring-white/40 px-5 py-3",
           "animate-[brand-pulse_1.6s_ease-in-out_infinite]",
-          isFullscreen
-            ? "w-[120px] h-[120px] sm:w-[180px] sm:h-[180px]"
-            : "w-[110px] h-[110px] sm:w-[150px] sm:h-[150px]",
+          isFullscreen ? "max-w-[440px] w-[88%] sm:w-[440px]" : "max-w-[360px] w-[82%] sm:w-[380px]",
         ].join(" ")}
-      />
+      >
+        <img
+          src={bannerAsset.url}
+          alt="Central Bank of India"
+          className="w-full h-auto object-contain"
+        />
+      </div>
       <div className="w-9 h-9 rounded-full border-[3px] border-white/30 border-t-white animate-spin" />
       {message && (
         <p className="text-white/95 text-sm sm:text-base font-medium tracking-wide text-center px-6">
