@@ -328,6 +328,98 @@ function TransferPage() {
           </div>
         </form>
       )}
+      </div>
+
+      {/* Recent transfers + limit cards (always visible) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Recent Transfers</h2>
+            <Link to="/statements" className="text-xs font-semibold text-primary">View all →</Link>
+          </div>
+          {recent.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">No recent transfers yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs min-w-[520px]">
+                <thead className="text-muted-foreground uppercase tracking-wider">
+                  <tr><th className="text-left py-2">Date</th><th className="text-left py-2">Mode</th><th className="text-left py-2">Beneficiary</th><th className="text-right py-2">Amount</th><th className="text-left py-2 pl-3">Reference</th></tr>
+                </thead>
+                <tbody>
+                  {recent.map((t) => (
+                    <tr key={t.id} className="border-t border-border">
+                      <td className="py-2 whitespace-nowrap">{formatDateTime(t.created_at)}</td>
+                      <td className="py-2"><span className="px-2 py-0.5 bg-secondary rounded">{t.mode}</span></td>
+                      <td className="py-2 max-w-[140px] truncate">{t.beneficiary_name ?? t.description ?? "—"}</td>
+                      <td className={`py-2 text-right font-semibold ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>{t.direction === "debit" ? "−" : "+"} {formatINR(t.amount)}</td>
+                      <td className="py-2 pl-3 font-mono text-[11px]">{t.reference}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+          <h2 className="font-bold mb-4">Transfer Limits</h2>
+          <div className="space-y-3">
+            {(["IMPS","NEFT","RTGS","UPI"] as const).map((m) => {
+              const u = usage[m];
+              const remaining = Math.max(0, u.limit - u.used);
+              const pct = Math.min(100, (u.used / u.limit) * 100);
+              return (
+                <div key={m} className="border border-border rounded-xl p-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold">{m}</span>
+                    <span className="text-xs text-muted-foreground">Limit {formatINR(u.limit)}</span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-secondary overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 text-[11px]">
+                    <span className="text-muted-foreground">Used <strong className="text-foreground">{formatINR(u.used)}</strong></span>
+                    <span className="text-right text-muted-foreground">Left <strong className="text-success">{formatINR(remaining)}</strong></span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Beneficiaries */}
+      <section className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Beneficiaries</h2>
+          <Link to="/beneficiaries" className="text-xs font-semibold text-primary inline-flex items-center gap-1"><Plus className="w-3 h-3" />Manage</Link>
+        </div>
+        {(beneficiaries ?? []).length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No beneficiaries yet.{" "}
+            <Link to="/beneficiaries" className="text-primary font-semibold">Add your first payee →</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {(beneficiaries ?? []).slice(0, 6).map((b) => (
+              <button
+                key={b.id}
+                onClick={() => { setBeneficiaryId(b.id); setStep("details"); }}
+                className="text-left border border-border rounded-xl p-3 hover:border-primary hover:bg-primary/5 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold truncate">{b.name}</div>
+                  {b.is_favourite && <Star className="w-4 h-4 text-amber-500 shrink-0" />}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono mt-1 truncate">{b.account_number}</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">{b.ifsc}</div>
+                <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-success font-semibold"><CheckCircle2 className="w-3 h-3" />Verified</div>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
+
