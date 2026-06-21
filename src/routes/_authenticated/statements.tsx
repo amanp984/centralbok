@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatINR, formatDateTime, maskAccount } from "@/lib/banking";
 import { exportTransactionsCSV, exportTransactionsExcel, exportTransactionsPDF } from "@/lib/exports";
+import { DEMO_PROFILE } from "@/lib/demo-user";
 
 export const Route = createFileRoute("/_authenticated/statements")({
   head: () => ({ meta: [{ title: "Statements — Central Bank of India" }] }),
@@ -61,10 +62,17 @@ function StatementsPage() {
     return a;
   }, { credit: 0, debit: 0 });
 
+  const opening = filtered.length ? Number(filtered[filtered.length - 1].running_balance ?? 0) - (filtered[filtered.length - 1].direction === "credit" ? Number(filtered[filtered.length - 1].amount) : -Number(filtered[filtered.length - 1].amount)) : Number(primary?.balance ?? 0);
+  const closing = filtered.length ? Number(filtered[0].running_balance ?? 0) : Number(primary?.balance ?? 0);
+
   const meta = {
-    customerName: user?.email ?? "Customer",
+    customerName: DEMO_PROFILE.fullName,
     accountNumber: primary?.account_number ?? "",
-    ifsc: primary?.ifsc ?? "",
+    ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
+    cif: DEMO_PROFILE.cif,
+    branch: DEMO_PROFILE.branch,
+    openingBalance: opening,
+    closingBalance: closing,
     fromDate: from,
     toDate: to,
   };

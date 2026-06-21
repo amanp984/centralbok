@@ -1,15 +1,14 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef, type ClipboardEvent, type KeyboardEvent } from "react";
-import { ArrowRight, AlertTriangle, Zap, Clock, Building2, Smartphone, Lock } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect, useRef, useMemo, type ClipboardEvent, type KeyboardEvent } from "react";
+import { ArrowRight, AlertTriangle, Zap, Clock, Building2, Smartphone, Lock, Star, Plus, Users, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useBeneficiaries, type Beneficiary } from "@/hooks/use-banking-data";
+import { useAccounts, useBeneficiaries, useTransactions, type Beneficiary } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatINR, maskAccount } from "@/lib/banking";
-import { DEMO_TRANSACTION_PASSWORD } from "@/lib/demo-user";
+import { formatINR, maskAccount, formatDateTime } from "@/lib/banking";
+import { DEMO_TRANSACTION_PASSWORD, DEMO_LIMITS } from "@/lib/demo-user";
 
 type SearchParams = { beneficiaryId?: string };
 
@@ -37,8 +36,9 @@ function TransferPage() {
   const { beneficiaryId: initialBenef } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: accounts, isLoading: aLoading } = useAccounts(user?.id);
-  const { data: beneficiaries, isLoading: bLoading } = useBeneficiaries(user?.id);
+  const { data: accounts } = useAccounts(user?.id);
+  const { data: beneficiaries } = useBeneficiaries(user?.id);
+  const { data: transactions } = useTransactions(user?.id, 200);
 
   const [step, setStep] = useState<Step>("details");
   const [accountId, setAccountId] = useState<string>("");
@@ -67,7 +67,17 @@ function TransferPage() {
   const selected = beneficiaries?.find((b) => b.id === beneficiaryId);
   const amountNum = parseFloat(amount || "0");
 
-  if (aLoading || bLoading) return <div className="max-w-3xl mx-auto"><Skeleton className="h-96 w-full" /></div>;
+  const used = (m: string) => (transactions ?? [])
+    .filter((t) => t.direction === "debit" && t.mode === m)
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const usage = useMemo(() => ({
+    IMPS: { limit: DEMO_LIMITS.imps, used: used("IMPS") },
+    NEFT: { limit: DEMO_LIMITS.neft, used: used("NEFT") },
+    RTGS: { limit: DEMO_LIMITS.rtgs, used: used("RTGS") },
+    UPI:  { limit: DEMO_LIMITS.upi,  used: used("UPI")  },
+  }), [transactions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const recent = (transactions ?? []).slice(0, 10);
+
 
   const proceedDetails = () => {
     setFormError("");
@@ -127,9 +137,37 @@ function TransferPage() {
   const steps: Step[] = ["details", "password", "otp"];
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Mode tiles */}
+      {step === "details" && (
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {MODES.map((m) => {
+            const u = usage[m.value as keyof typeof usage];
+            const remaining = Math.max(0, u.limit - u.used);
+            const active = mode === m.value;
+            return (
+              <button
+                key={m.value}
+                onClick={() => setMode(m.value as typeof mode)}
+                className={`text-left rounded-2xl border p-4 transition-colors ${active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <m.icon className="w-5 h-5 text-primary" />
+                  <span className="font-bold">{m.label}</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground">{m.desc}</div>
+                <div className="mt-3 text-[11px] text-muted-foreground">Remaining today</div>
+                <div className="text-sm font-semibold text-success">{formatINR(remaining)}</div>
+              </button>
+            );
+          })}
+        </section>
+      )}
+
+      <div className="max-w-3xl">
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-6 text-xs">
+
         {steps.map((s, i, arr) => (
           <div key={s} className="flex items-center gap-2 flex-1 min-w-0">
             <div className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center font-bold ${
@@ -290,6 +328,98 @@ function TransferPage() {
           </div>
         </form>
       )}
+      </div>
+
+      {/* Recent transfers + limit cards (always visible) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Recent Transfers</h2>
+            <Link to="/statements" className="text-xs font-semibold text-primary">View all →</Link>
+          </div>
+          {recent.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">No recent transfers yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs min-w-[520px]">
+                <thead className="text-muted-foreground uppercase tracking-wider">
+                  <tr><th className="text-left py-2">Date</th><th className="text-left py-2">Mode</th><th className="text-left py-2">Beneficiary</th><th className="text-right py-2">Amount</th><th className="text-left py-2 pl-3">Reference</th></tr>
+                </thead>
+                <tbody>
+                  {recent.map((t) => (
+                    <tr key={t.id} className="border-t border-border">
+                      <td className="py-2 whitespace-nowrap">{formatDateTime(t.created_at)}</td>
+                      <td className="py-2"><span className="px-2 py-0.5 bg-secondary rounded">{t.mode}</span></td>
+                      <td className="py-2 max-w-[140px] truncate">{t.beneficiary_name ?? t.description ?? "—"}</td>
+                      <td className={`py-2 text-right font-semibold ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>{t.direction === "debit" ? "−" : "+"} {formatINR(t.amount)}</td>
+                      <td className="py-2 pl-3 font-mono text-[11px]">{t.reference}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+          <h2 className="font-bold mb-4">Transfer Limits</h2>
+          <div className="space-y-3">
+            {(["IMPS","NEFT","RTGS","UPI"] as const).map((m) => {
+              const u = usage[m];
+              const remaining = Math.max(0, u.limit - u.used);
+              const pct = Math.min(100, (u.used / u.limit) * 100);
+              return (
+                <div key={m} className="border border-border rounded-xl p-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold">{m}</span>
+                    <span className="text-xs text-muted-foreground">Limit {formatINR(u.limit)}</span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-secondary overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 text-[11px]">
+                    <span className="text-muted-foreground">Used <strong className="text-foreground">{formatINR(u.used)}</strong></span>
+                    <span className="text-right text-muted-foreground">Left <strong className="text-success">{formatINR(remaining)}</strong></span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Beneficiaries */}
+      <section className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Beneficiaries</h2>
+          <Link to="/beneficiaries" className="text-xs font-semibold text-primary inline-flex items-center gap-1"><Plus className="w-3 h-3" />Manage</Link>
+        </div>
+        {(beneficiaries ?? []).length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No beneficiaries yet.{" "}
+            <Link to="/beneficiaries" className="text-primary font-semibold">Add your first payee →</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {(beneficiaries ?? []).slice(0, 6).map((b) => (
+              <button
+                key={b.id}
+                onClick={() => { setBeneficiaryId(b.id); setStep("details"); }}
+                className="text-left border border-border rounded-xl p-3 hover:border-primary hover:bg-primary/5 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold truncate">{b.name}</div>
+                  {b.is_favourite && <Star className="w-4 h-4 text-amber-500 shrink-0" />}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono mt-1 truncate">{b.account_number}</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">{b.ifsc}</div>
+                <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-success font-semibold"><CheckCircle2 className="w-3 h-3" />Verified</div>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
+
