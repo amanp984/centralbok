@@ -63,12 +63,15 @@ function LoginPage() {
       <header className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm">
-              <span className="text-primary font-extrabold text-lg leading-none">CBI</span>
+            <div className="bg-white rounded-md p-1.5 shadow-sm flex items-center">
+              <img
+                src={cbiOfficialLogo.url}
+                alt="Central Bank of India"
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
             </div>
-            <div className="leading-tight">
-              <div className="text-base sm:text-lg font-bold tracking-wide">Central Bank of India</div>
-              <div className="text-[10px] sm:text-xs text-white/80 uppercase tracking-wider">CENTRAL TO YOU SINCE 1911</div>
+            <div className="leading-tight hidden sm:block">
+              <div className="text-[10px] text-white/80 uppercase tracking-wider">Central to you since 1911</div>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
