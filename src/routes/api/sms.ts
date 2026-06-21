@@ -30,6 +30,21 @@ export const Route = createFileRoute("/api/sms")({
         ),
 
       POST: async ({ request }) => {
+        // Shared-secret check — reject anonymous callers. The forwarder must
+        // send `x-webhook-secret: <SMS_WEBHOOK_SECRET>`. Without a configured
+        // server secret the endpoint refuses all writes (fail closed).
+        const expected = process.env.SMS_WEBHOOK_SECRET;
+        const provided = request.headers.get("x-webhook-secret") ?? "";
+        if (!expected) {
+          return json(
+            { ok: false, error: "Webhook secret not configured on server" },
+            503,
+          );
+        }
+        if (provided.length !== expected.length || provided !== expected) {
+          return json({ ok: false, error: "Unauthorized" }, 401);
+        }
+
         let body: { message?: string } = {};
         try {
           body = (await request.json()) as { message?: string };
