@@ -1,10 +1,10 @@
-import bannerAsset from "@/assets/cbi-banner.png.asset.json";
+import bannerAsset from "@/assets/cbi-official-logo.png.asset.json";
 
 type Variant = "fullscreen" | "overlay";
 
 /**
- * Glass loader showing the Central Bank banner over the blurred page.
- * Keeps the current page visible — never shows a black screen.
+ * Full-screen brand loader — no card, no white box.
+ * Just the Central Bank banner over a blurred dark backdrop with a spinner.
  */
 export function BrandLoader({
   message = "Securing your session...",
@@ -15,32 +15,24 @@ export function BrandLoader({
   variant?: Variant;
   visible?: boolean;
 }) {
-  const isFullscreen = variant === "fullscreen";
+  void variant;
   return (
     <div
       aria-hidden={!visible}
       role={visible ? "status" : undefined}
       className={[
-        "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5",
+        "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6",
         "transition-opacity duration-300 ease-out",
-        "bg-slate-950/45 backdrop-blur-[10px]",
+        "bg-slate-950/60 backdrop-blur-[12px]",
         visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
       ].join(" ")}
     >
-      <div
-        className={[
-          "rounded-xl bg-white/95 shadow-2xl ring-1 ring-white/40 px-5 py-3",
-          "animate-[brand-pulse_1.6s_ease-in-out_infinite]",
-          isFullscreen ? "max-w-[440px] w-[88%] sm:w-[440px]" : "max-w-[360px] w-[82%] sm:w-[380px]",
-        ].join(" ")}
-      >
-        <img
-          src={bannerAsset.url}
-          alt="Central Bank of India"
-          className="w-full h-auto object-contain"
-        />
-      </div>
-      <div className="w-9 h-9 rounded-full border-[3px] border-white/30 border-t-white animate-spin" />
+      <img
+        src={bannerAsset.url}
+        alt="Central Bank of India"
+        className="w-[78%] max-w-[460px] h-auto object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)] animate-[brand-pulse_1.8s_ease-in-out_infinite]"
+      />
+      <div className="w-10 h-10 rounded-full border-[3px] border-white/25 border-t-white animate-spin" />
       {message && (
         <p className="text-white/95 text-sm sm:text-base font-medium tracking-wide text-center px-6">
           {message}
