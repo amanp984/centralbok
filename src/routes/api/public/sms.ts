@@ -14,7 +14,7 @@ import { parseSms, formatParsedSms } from "@/lib/sms-parser";
  * against the demo primary account and returns the structured payload.
  * Wire your forwarder later — no external services are connected yet.
  */
-export const Route = createFileRoute("/api/sms")({
+export const Route = createFileRoute("/api/public/sms")({
   server: {
     handlers: {
       GET: async () =>

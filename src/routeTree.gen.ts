@@ -16,7 +16,6 @@ import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiSmsRouteImport } from './routes/api/sms'
 import { Route as AuthenticatedTransferRouteImport } from './routes/_authenticated/transfer'
 import { Route as AuthenticatedStatementsRouteImport } from './routes/_authenticated/statements'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -30,6 +29,7 @@ import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBeneficiariesRouteImport } from './routes/_authenticated/beneficiaries'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
+import { Route as ApiPublicSmsRouteImport } from './routes/api/public/sms'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -63,11 +63,6 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSmsRoute = ApiSmsRouteImport.update({
-  id: '/api/sms',
-  path: '/api/sms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedTransferRoute = AuthenticatedTransferRouteImport.update({
@@ -137,6 +132,11 @@ const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicSmsRoute = ApiPublicSmsRouteImport.update({
+  id: '/api/public/sms',
+  path: '/api/public/sms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -158,7 +158,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statements': typeof AuthenticatedStatementsRoute
   '/transfer': typeof AuthenticatedTransferRoute
-  '/api/sms': typeof ApiSmsRoute
+  '/api/public/sms': typeof ApiPublicSmsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -180,7 +180,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statements': typeof AuthenticatedStatementsRoute
   '/transfer': typeof AuthenticatedTransferRoute
-  '/api/sms': typeof ApiSmsRoute
+  '/api/public/sms': typeof ApiPublicSmsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -204,7 +204,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statements': typeof AuthenticatedStatementsRoute
   '/_authenticated/transfer': typeof AuthenticatedTransferRoute
-  '/api/sms': typeof ApiSmsRoute
+  '/api/public/sms': typeof ApiPublicSmsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -228,7 +228,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statements'
     | '/transfer'
-    | '/api/sms'
+    | '/api/public/sms'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -250,7 +250,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statements'
     | '/transfer'
-    | '/api/sms'
+    | '/api/public/sms'
   id:
     | '__root__'
     | '/'
@@ -273,7 +273,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/statements'
     | '/_authenticated/transfer'
-    | '/api/sms'
+    | '/api/public/sms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -284,7 +284,7 @@ export interface RootRouteChildren {
   OtpRoute: typeof OtpRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
-  ApiSmsRoute: typeof ApiSmsRoute
+  ApiPublicSmsRoute: typeof ApiPublicSmsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -336,13 +336,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sms': {
-      id: '/api/sms'
-      path: '/api/sms'
-      fullPath: '/api/sms'
-      preLoaderRoute: typeof ApiSmsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/transfer': {
@@ -436,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/sms': {
+      id: '/api/public/sms'
+      path: '/api/public/sms'
+      fullPath: '/api/public/sms'
+      preLoaderRoute: typeof ApiPublicSmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -482,18 +482,8 @@ const rootRouteChildren: RootRouteChildren = {
   OtpRoute: OtpRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
-  ApiSmsRoute: ApiSmsRoute,
+  ApiPublicSmsRoute: ApiPublicSmsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
