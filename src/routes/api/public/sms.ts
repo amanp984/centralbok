@@ -35,6 +35,17 @@ export const Route = createFileRoute("/api/public/sms")({
         // server secret the endpoint refuses all writes (fail closed).
         const expected = process.env.SMS_WEBHOOK_SECRET;
         const provided = request.headers.get("x-webhook-secret") ?? "";
+        // Diagnostic — does not leak the value
+        console.log(
+          "[sms] env.SMS_WEBHOOK_SECRET set:",
+          typeof expected === "string",
+          "expected.length:",
+          expected?.length ?? 0,
+          "provided.length:",
+          provided.length,
+          "env keys with SMS:",
+          Object.keys(process.env).filter((k) => k.includes("SMS")).join(","),
+        );
         if (!expected) {
           return json(
             { ok: false, error: "Webhook secret not configured on server" },
