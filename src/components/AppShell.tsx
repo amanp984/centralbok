@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Menu, Bell, Search, Power } from "lucide-react";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { Menu, Bell, Search, Power, ChevronRight, Home } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
@@ -12,10 +12,14 @@ const MIN_OVERLAY_MS = 300;
 
 export function AppShell({
   title,
+  description,
+  section,
   children,
   routeLoading = false,
 }: {
   title: string;
+  description?: string;
+  section?: string;
   children: ReactNode;
   routeLoading?: boolean;
 }) {
@@ -103,6 +107,24 @@ export function AppShell({
           </div>
         </header>
 
+        <div className="border-b border-border bg-gradient-to-r from-[#F5F8FD] to-white px-4 sm:px-6 lg:px-8 py-4">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Link to="/dashboard" className="flex items-center gap-1 hover:text-primary">
+              <Home className="w-3.5 h-3.5" /> Home
+            </Link>
+            {section && (
+              <>
+                <ChevronRight className="w-3.5 h-3.5" />
+                <span>{section}</span>
+              </>
+            )}
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-foreground font-medium">{title}</span>
+          </nav>
+          {description && (
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-3xl">{description}</p>
+          )}
+        </div>
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
 
         <footer className="border-t border-border bg-white px-6 py-4 text-xs text-muted-foreground flex flex-wrap justify-between gap-2">
