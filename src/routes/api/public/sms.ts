@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/public/sms")({
         new Response(
           JSON.stringify({
             ok: true,
-            endpoint: "/api/sms",
+            endpoint: "/api/public/sms",
             method: "POST",
             body: { message: "string" },
             note: "Forward bank SMS bodies here. Returns parsed { direction, mode, counterparty, reference, amount }.",
