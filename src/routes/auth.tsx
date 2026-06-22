@@ -12,7 +12,7 @@ import {
 
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "@/components/BrandLoader";
-import bannerAsset from "@/assets/cbi-banner.png.asset.json";
+import bannerAsset from "@/assets/cbi-official-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -53,13 +53,11 @@ function AuthPage() {
       {/* Top brand bar */}
       <header className="bg-gradient-to-r from-[#0B4DA2] via-[#1356b5] to-[#1E63C6] shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="bg-white rounded-md p-1 shadow-sm">
-            <img
-              src={bannerAsset.url}
-              alt="Central Bank of India"
-              className="h-10 sm:h-12 w-auto object-contain"
-            />
-          </div>
+          <img
+            src={bannerAsset.url}
+            alt="Central Bank of India"
+            className="h-12 sm:h-14 w-auto object-contain drop-shadow"
+          />
           <nav className="hidden md:flex items-center gap-6 text-white/95 text-sm font-medium">
             <a href="#" className="hover:text-white">Contact Us</a>
             <span className="opacity-40">|</span>
