@@ -145,8 +145,8 @@ function Dashboard() {
         </section>
 
         {/* Recent + Shopping + Wealth */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section>
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr] gap-6">
+          <section className="min-w-0">
             <div className="flex items-center justify-between mb-3">
               <SectionTitle className="mb-0">Recent Transactions</SectionTitle>
               <Link to="/statements" className="text-sm font-medium text-primary flex items-center gap-1">
