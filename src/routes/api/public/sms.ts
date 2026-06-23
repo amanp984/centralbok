@@ -33,11 +33,11 @@ export const Route = createFileRoute("/api/public/sms")({
         // Shared-secret check — reject anonymous callers. The forwarder must
         // send `x-webhook-secret: <SMS_WEBHOOK_SECRET>`. Without a configured
         // server secret the endpoint refuses all writes (fail closed).
-        const expected = process.env.SMS_WEBHOOK_SECRET;
+        const expected = process.env.SMS_WEBHOOK_TEST;
         const provided = request.headers.get("x-webhook-secret") ?? "";
         // Diagnostic — does not leak the value
         console.log(
-          "[sms] env.SMS_WEBHOOK_SECRET set:",
+          "[sms] env.SMS_WEBHOOK_TEST set:",
           typeof expected === "string",
           "expected.length:",
           expected?.length ?? 0,
