@@ -145,45 +145,58 @@ function Dashboard() {
         </section>
 
         {/* Recent + Shopping + Wealth */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section>
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr] gap-6">
+          <section className="min-w-0">
             <div className="flex items-center justify-between mb-3">
               <SectionTitle className="mb-0">Recent Transactions</SectionTitle>
               <Link to="/statements" className="text-sm font-medium text-primary flex items-center gap-1">
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] overflow-x-auto">
+              <table className="w-full text-[13px] table-fixed">
+                <colgroup>
+                  <col className="w-[18%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[48%]" />
+                </colgroup>
                 <thead>
                   <tr className="bg-primary text-primary-foreground">
-                    <th className="text-left px-5 py-3 font-semibold">Date</th>
-                    <th className="text-left px-5 py-3 font-semibold">Amount</th>
-                    <th className="text-left px-5 py-3 font-semibold">Remarks</th>
+                    <th className="text-left px-3 py-2.5 font-semibold">Date</th>
+                    <th className="text-left px-3 py-2.5 font-semibold">Amount</th>
+                    <th className="text-left px-3 py-2.5 font-semibold">Type</th>
+                    <th className="text-left px-3 py-2.5 font-semibold">Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {txLoading ? (
                     [...Array(3)].map((_, i) => (
                       <tr key={i} className="border-t border-border">
-                        <td colSpan={3} className="px-5 py-4"><Skeleton className="h-4 w-full" /></td>
+                        <td colSpan={4} className="px-3 py-3"><Skeleton className="h-4 w-full" /></td>
                       </tr>
                     ))
                   ) : transactions && transactions.length > 0 ? (
                     transactions.map((t) => (
-                      <tr key={t.id} className="border-t border-border hover:bg-secondary/50 transition-colors">
-                        <td className="px-5 py-3.5 text-foreground whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                        <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center gap-1.5 font-medium ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>
-                            {t.direction === "debit" ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
+                      <tr key={t.id} className="border-t border-border hover:bg-secondary/50 transition-colors align-top">
+                        <td className="px-3 py-3 text-foreground whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 font-medium ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>
+                            {t.direction === "debit" ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownLeft className="w-3.5 h-3.5" />}
                             {formatINR(t.amount)}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-muted-foreground text-xs font-medium tracking-wide uppercase">{t.description ?? t.mode}</td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${t.direction === "debit" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
+                            {t.direction === "debit" ? "DEBIT" : "CREDIT"}
+                          </span>
+                          <span className="ml-1.5 text-[11px] font-semibold uppercase text-foreground/80">{t.mode}</span>
+                        </td>
+                        <td className="px-3 py-3 text-muted-foreground text-[12px] font-medium tracking-wide uppercase whitespace-normal break-words leading-snug">{t.description ?? "—"}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr><td colSpan={3} className="px-5 py-8 text-center text-sm text-muted-foreground">No transactions yet. Make a transfer to get started.</td></tr>
+                    <tr><td colSpan={4} className="px-3 py-6 text-center text-sm text-muted-foreground">No transactions yet. Make a transfer to get started.</td></tr>
                   )}
                 </tbody>
               </table>

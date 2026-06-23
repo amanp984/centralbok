@@ -90,6 +90,23 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  /*
+   * Compact density: shrink the root font-size so every rem-based
+   * Tailwind utility (spacing, padding, typography, gaps, sized icons)
+   * scales down ~31%, matching the visual density of ~67% browser zoom
+   * without using CSS transforms or actual zoom. Fixed px values
+   * (e.g. sidebar width, borders) are unaffected and tuned separately.
+   */
+  html {
+    font-size: 11px;
+  }
+  @media (min-width: 1280px) {
+    html { font-size: 11.5px; }
+  }
+  input, textarea, select, button {
+    font-size: inherit;
+  }
 }
 
 @keyframes loadingbar {
