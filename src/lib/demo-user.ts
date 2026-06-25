@@ -43,7 +43,7 @@ export const DEMO_LIMITS = {
 export function isLocallyAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return window.localStorage.getItem(AUTH_STORAGE_KEY) === "1";
+    return window.sessionStorage.getItem(AUTH_STORAGE_KEY) === "1";
   } catch {
     return false;
   }
@@ -52,8 +52,11 @@ export function isLocallyAuthenticated(): boolean {
 export function setLocallyAuthenticated(value: boolean) {
   if (typeof window === "undefined") return;
   try {
-    if (value) window.localStorage.setItem(AUTH_STORAGE_KEY, "1");
-    else window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (value) window.sessionStorage.setItem(AUTH_STORAGE_KEY, "1");
+    else window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    // Clear any legacy localStorage entry so previously-remembered sessions
+    // do not bypass the login screen in new tabs / incognito windows.
+    try { window.localStorage.removeItem(AUTH_STORAGE_KEY); } catch { /* ignore */ }
   } catch {
     /* ignore */
   }
