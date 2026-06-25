@@ -32,15 +32,11 @@ export function AppShell({
 
   // Show a brief overlay on every route change to mask white flashes.
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [overlayVisible, setOverlayVisible] = useState(false);
-  const firstRender = useRef(true);
+  // Show on initial mount too so the dashboard init after login shows the loader.
+  const [overlayVisible, setOverlayVisible] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
     setOverlayVisible(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setOverlayVisible(false), MIN_OVERLAY_MS);
