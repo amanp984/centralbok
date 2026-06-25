@@ -17,6 +17,20 @@ type ExportMeta = {
   toDate?: string;
 };
 
+// jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
+const formatRs = (n: number) =>
+  "Rs. " +
+  new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n) || 0);
+const sanitize = (s: string) =>
+  String(s ?? "")
+    .replace(/₹/g, "Rs.")
+    .replace(/[→➔➜]/g, "->")
+    .replace(/[·•]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    // strip any other non-printable / non-latin1 chars that helvetica can't render
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "");
+
 export function exportTransactionsCSV(transactions: Transaction[], filename = "statement.csv") {
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
   const rows = transactions.map((t) => [
@@ -64,101 +78,113 @@ async function loadLogoDataUrl(): Promise<string | null> {
 }
 
 export async function exportTransactionsPDF(transactions: Transaction[], meta: ExportMeta, filename = "statement.pdf") {
-  const doc = new jsPDF();
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PRIMARY: [number, number, number] = [11, 77, 162];
   const TEXT: [number, number, number] = [31, 42, 68];
   const MUTED: [number, number, number] = [110, 120, 140];
-  const pageW = doc.internal.pageSize.width;
+  const pageW = doc.internal.pageSize.width; // 210
+  const M = 14;
 
-  // Header band
-  doc.setFillColor(...PRIMARY);
-  doc.rect(0, 0, pageW, 34, "F");
-
+  // Top banner: logo on left, contact lines on right
   const logo = await loadLogoDataUrl();
   if (logo) {
-    try { doc.addImage(logo, "PNG", 12, 6, 22, 22); } catch { /* ignore */ }
+    try { doc.addImage(logo, "PNG", M, 10, 70, 22); } catch { /* ignore */ }
   }
-  doc.setTextColor(255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text("CENTRAL BANK OF INDIA", 38, 15);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text("Account Statement", 38, 22);
-  doc.setFontSize(8);
-  doc.text(`Generated: ${new Date().toLocaleString("en-IN")}`, 38, 28);
-
-  // Customer / account block
   doc.setTextColor(...TEXT);
-  let y = 44;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-  doc.text("Account Holder", 14, y);
-  doc.text("Account Number", pageW / 2, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(meta.customerName, 14, y + 5);
-  doc.text(meta.accountNumber, pageW / 2, y + 5);
-  y += 12;
-  doc.setFont("helvetica", "bold");
-  doc.text("CIF", 14, y);
-  doc.text("IFSC", pageW / 4 + 5, y);
-  doc.text("Branch", pageW / 2, y);
-  doc.text("Period", (3 * pageW) / 4, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(meta.cif ?? "—", 14, y + 5);
-  doc.text(meta.ifsc, pageW / 4 + 5, y + 5);
-  doc.text(meta.branch ?? "—", pageW / 2, y + 5);
-  doc.text(`${meta.fromDate ?? "—"} → ${meta.toDate ?? "—"}`, (3 * pageW) / 4, y + 5);
-  y += 10;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  const rightX = pageW - M;
+  doc.text("Tel: 1800 22 1911 / 1911", rightX, 14, { align: "right" });
+  doc.text("Email: central.bank@cbi.co.in", rightX, 20, { align: "right" });
+  doc.text("Web: www.centralbankofindia.co.in", rightX, 26, { align: "right" });
 
-  // Summary
+  // Title
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...PRIMARY);
+  doc.text("STATEMENT OF ACCOUNT", pageW / 2, 44, { align: "center" });
+
+  // Customer details + summary box
+  const blockY = 54;
+  doc.setTextColor(...TEXT);
+  doc.setFontSize(9.5);
+  const details: Array<[string, string]> = [
+    ["Customer Name", sanitize(meta.customerName)],
+    ["Account Number", sanitize(meta.accountNumber)],
+    ["Account Type", "SAVINGS ACCOUNT"],
+    ["IFSC Code", sanitize(meta.ifsc)],
+    ["CIF", sanitize(meta.cif ?? "-")],
+    ["Branch", sanitize(meta.branch ?? "-")],
+  ];
+  details.forEach(([k, v], i) => {
+    const yy = blockY + i * 6;
+    doc.setFont("helvetica", "bold"); doc.text(k, M, yy);
+    doc.setFont("helvetica", "normal"); doc.text(":", M + 32, yy);
+    doc.text(v, M + 36, yy);
+  });
+
+  // Summary panel on right
+  const sx = pageW / 2 + 4;
+  const sw = pageW - M - sx;
+  const sh = 40;
+  doc.setDrawColor(...PRIMARY); doc.setFillColor(245, 249, 254);
+  doc.roundedRect(sx, blockY - 6, sw, sh, 1.5, 1.5, "FD");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...PRIMARY);
+  doc.text("Statement Summary", sx + 3, blockY - 1);
+
   const totals = transactions.reduce(
     (a, t) => { if (t.direction === "credit") a.cr += Number(t.amount); else a.dr += Number(t.amount); return a; },
     { cr: 0, dr: 0 }
   );
-  const opening = meta.openingBalance ?? (transactions.length ? Number(transactions[transactions.length - 1].running_balance ?? 0) - (transactions[transactions.length - 1].direction === "credit" ? Number(transactions[transactions.length - 1].amount) : -Number(transactions[transactions.length - 1].amount)) : 0);
-  const closing = meta.closingBalance ?? (transactions.length ? Number(transactions[0].running_balance ?? 0) : opening);
+  const last = transactions[transactions.length - 1];
+  const first = transactions[0];
+  const opening = meta.openingBalance ?? (last ? Number(last.running_balance ?? 0) - (last.direction === "credit" ? Number(last.amount) : -Number(last.amount)) : 0);
+  const closing = meta.closingBalance ?? (first ? Number(first.running_balance ?? 0) : opening);
 
-  doc.setDrawColor(220);
-  doc.setFillColor(244, 247, 252);
-  doc.roundedRect(14, y, pageW - 28, 22, 2, 2, "FD");
-  doc.setFontSize(8); doc.setTextColor(...MUTED);
-  doc.text("OPENING BALANCE", 18, y + 6);
-  doc.text("CLOSING BALANCE", 60, y + 6);
-  doc.text("TOTAL CREDITS", 105, y + 6);
-  doc.text("TOTAL DEBITS", 140, y + 6);
-  doc.text("TXN COUNT", 175, y + 6);
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...TEXT);
-  doc.text(formatINR(opening), 18, y + 14);
-  doc.text(formatINR(closing), 60, y + 14);
-  doc.setTextColor(0, 130, 70); doc.text(formatINR(totals.cr), 105, y + 14);
-  doc.setTextColor(180, 30, 30); doc.text(formatINR(totals.dr), 140, y + 14);
-  doc.setTextColor(...TEXT); doc.text(String(transactions.length), 175, y + 14);
-  y += 26;
+  doc.setTextColor(...TEXT); doc.setFontSize(9);
+  const sRows: Array<[string, string]> = [
+    ["Statement Period", `${sanitize(meta.fromDate ?? "-")} to ${sanitize(meta.toDate ?? "-")}`],
+    ["Opening Balance", formatRs(opening)],
+    ["Total Deposits", formatRs(totals.cr)],
+    ["Total Withdrawals", formatRs(totals.dr)],
+    ["Closing Balance", formatRs(closing)],
+  ];
+  sRows.forEach(([k, v], i) => {
+    const yy = blockY + 5 + i * 6;
+    doc.setFont("helvetica", "bold"); doc.text(k, sx + 3, yy);
+    doc.setFont("helvetica", "normal"); doc.text(":", sx + 36, yy);
+    doc.text(v, sx + 39, yy);
+  });
+
+  const tableY = blockY + 6 * details.length + 6;
 
   autoTable(doc, {
-    startY: y,
-    head: [["Date", "Description", "Reference", "Debit", "Credit", "Balance"]],
+    startY: tableY,
+    head: [["Date", "Narration", "Cheque/Ref No.", "Withdrawals (Rs.)", "Deposits (Rs.)", "Balance (Rs.)"]],
     body: transactions.map((t) => [
-      formatDateTime(t.created_at),
-      t.description ?? t.beneficiary_name ?? t.mode,
-      t.reference,
-      t.direction === "debit" ? formatINR(t.amount) : "",
-      t.direction === "credit" ? formatINR(t.amount) : "",
-      formatINR(t.running_balance ?? 0),
+      sanitize(formatDateTime(t.created_at)),
+      sanitize(t.description ?? t.beneficiary_name ?? t.mode),
+      sanitize(t.reference),
+      t.direction === "debit" ? formatRs(t.amount) : "-",
+      t.direction === "credit" ? formatRs(t.amount) : "-",
+      formatRs(t.running_balance ?? 0),
     ]),
-    styles: { fontSize: 8, cellPadding: 2.5 },
-    headStyles: { fillColor: PRIMARY, textColor: 255, fontStyle: "bold" },
-    alternateRowStyles: { fillColor: [248, 250, 253] },
+    styles: { fontSize: 8.5, cellPadding: 2.5, overflow: "linebreak", valign: "middle", lineColor: [210, 218, 230], lineWidth: 0.1 },
+    headStyles: { fillColor: [255, 255, 255], textColor: PRIMARY, fontStyle: "bold", lineColor: PRIMARY, lineWidth: 0.3, halign: "center" },
+    bodyStyles: { textColor: TEXT },
+    alternateRowStyles: { fillColor: [249, 251, 254] },
     columnStyles: {
-      3: { halign: "right", textColor: [180, 30, 30] },
-      4: { halign: "right", textColor: [0, 130, 70] },
-      5: { halign: "right", fontStyle: "bold" },
+      0: { cellWidth: 22, halign: "left" },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 32 },
+      3: { cellWidth: 27, halign: "right" },
+      4: { cellWidth: 27, halign: "right" },
+      5: { cellWidth: 24, halign: "right", fontStyle: "bold" },
     },
+    margin: { left: M, right: M },
     didDrawPage: () => {
       const ph = doc.internal.pageSize.height;
-      doc.setFontSize(7); doc.setTextColor(...MUTED);
-      doc.text("Central Bank of India · Andheri East, Mumbai · This is a computer-generated statement and does not require a signature.", 14, ph - 8);
-      doc.text(`Page ${doc.getNumberOfPages()}`, pageW - 22, ph - 8);
+      doc.setFontSize(7.5); doc.setTextColor(...MUTED);
+      doc.text("* This is a computer generated statement and does not require any signature.", M, ph - 14);
+      doc.text("Thank you for banking with Central Bank of India.", pageW / 2, ph - 8, { align: "center" });
+      doc.text(`Page ${doc.getNumberOfPages()}`, pageW - M, ph - 8, { align: "right" });
     },
   });
 
@@ -179,17 +205,17 @@ export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, fi
   doc.setFontSize(11);
   let y = 44;
   const row = (k: string, v: string) => { doc.setFont("helvetica","bold"); doc.text(k, 14, y); doc.setFont("helvetica","normal"); doc.text(v, 80, y); y += 8; };
-  row("Status", t.direction === "debit" ? "DEBIT — SUCCESS" : "CREDIT — SUCCESS");
+  row("Status", t.direction === "debit" ? "DEBIT - SUCCESS" : "CREDIT - SUCCESS");
   row("Reference No.", t.reference);
   row("Date & Time", formatDateTime(t.created_at));
   row("Mode", t.mode);
-  row("Amount", formatINR(t.amount));
+  row("Amount", formatRs(t.amount));
   row("From Account", meta.accountNumber);
-  if (t.beneficiary_name) row("Beneficiary", t.beneficiary_name);
-  if (t.beneficiary_account) row("Beneficiary A/C", t.beneficiary_account);
-  if (t.beneficiary_ifsc) row("Beneficiary IFSC", t.beneficiary_ifsc);
-  if (t.description) row("Remarks", t.description);
-  row("Running Balance", formatINR(t.running_balance ?? 0));
+  if (t.beneficiary_name) row("Beneficiary", sanitize(t.beneficiary_name));
+  if (t.beneficiary_account) row("Beneficiary A/C", sanitize(t.beneficiary_account));
+  if (t.beneficiary_ifsc) row("Beneficiary IFSC", sanitize(t.beneficiary_ifsc));
+  if (t.description) row("Remarks", sanitize(t.description));
+  row("Running Balance", formatRs(t.running_balance ?? 0));
 
   doc.setFontSize(8); doc.setTextColor(100);
   doc.text("This is a computer-generated receipt and does not require a signature.", 14, doc.internal.pageSize.height - 10);
