@@ -205,17 +205,17 @@ export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, fi
   doc.setFontSize(11);
   let y = 44;
   const row = (k: string, v: string) => { doc.setFont("helvetica","bold"); doc.text(k, 14, y); doc.setFont("helvetica","normal"); doc.text(v, 80, y); y += 8; };
-  row("Status", t.direction === "debit" ? "DEBIT — SUCCESS" : "CREDIT — SUCCESS");
+  row("Status", t.direction === "debit" ? "DEBIT - SUCCESS" : "CREDIT - SUCCESS");
   row("Reference No.", t.reference);
   row("Date & Time", formatDateTime(t.created_at));
   row("Mode", t.mode);
-  row("Amount", formatINR(t.amount));
+  row("Amount", formatRs(t.amount));
   row("From Account", meta.accountNumber);
-  if (t.beneficiary_name) row("Beneficiary", t.beneficiary_name);
-  if (t.beneficiary_account) row("Beneficiary A/C", t.beneficiary_account);
-  if (t.beneficiary_ifsc) row("Beneficiary IFSC", t.beneficiary_ifsc);
-  if (t.description) row("Remarks", t.description);
-  row("Running Balance", formatINR(t.running_balance ?? 0));
+  if (t.beneficiary_name) row("Beneficiary", sanitize(t.beneficiary_name));
+  if (t.beneficiary_account) row("Beneficiary A/C", sanitize(t.beneficiary_account));
+  if (t.beneficiary_ifsc) row("Beneficiary IFSC", sanitize(t.beneficiary_ifsc));
+  if (t.description) row("Remarks", sanitize(t.description));
+  row("Running Balance", formatRs(t.running_balance ?? 0));
 
   doc.setFontSize(8); doc.setTextColor(100);
   doc.text("This is a computer-generated receipt and does not require a signature.", 14, doc.internal.pageSize.height - 10);
