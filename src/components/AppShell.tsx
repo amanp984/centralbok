@@ -8,7 +8,7 @@ import { setLocallyAuthenticated, DEMO_FULL_NAME } from "@/lib/demo-user";
 import { setOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "./BrandLoader";
 
-const MIN_OVERLAY_MS = 300;
+const MIN_OVERLAY_MS = 700;
 
 export function AppShell({
   title,
