@@ -1,24 +1,24 @@
 // Local-only demo login. No Supabase Auth.
 export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
-export const DEMO_USERNAME = "demo123";
-export const DEMO_PASSWORD = "demo123";
-export const DEMO_TRANSACTION_PASSWORD = "demo123";
-export const DEMO_FULL_NAME = "Rambabu Prajapati";
-export const DEMO_EMAIL = "rambabu.prajapati@centralbank.local";
+export const DEMO_USERNAME = "AP345578698";
+export const DEMO_PASSWORD = "ANIKET8080";
+export const DEMO_TRANSACTION_PASSWORD = "ANIKET8080";
+export const DEMO_FULL_NAME = "AJP";
+export const DEMO_EMAIL = "ajp81876529@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   fullName: DEMO_FULL_NAME,
-  customerId: "CBI8923451",
-  cif: "892345126789",
-  pan: "ABCDE1234F",
-  mobile: "+91 98XXXXXX72",
+  customerId: "CBI66724378",
+  cif: "CBI66724378",
+  pan: "XXXXX",
+  mobile: "+9198XXXXXX68",
   email: DEMO_EMAIL,
-  address: "B-204, Sun Residency, Andheri East",
-  city: "Mumbai",
+  address: "B-204 Sector 4, Sun Residency, Andheri East",
+  city: "Mumbai City",
   state: "Maharashtra",
-  pinCode: "400069",
+  pinCode: "400078",
   branch: "Andheri East Mumbai",
   branchCode: "0282734",
   ifsc: "CBIN0282734",
@@ -27,7 +27,6 @@ export const DEMO_PROFILE = {
   kycStatus: "Verified",
   kycReference: "KYC-CBI-20240514-998271",
   kycCompletionDate: "2024-05-14",
-  openingDate: "2018-03-22",
   micr: "400016027",
 } as const;
 
