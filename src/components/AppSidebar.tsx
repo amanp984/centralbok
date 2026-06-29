@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { setLocallyAuthenticated } from "@/lib/demo-user";
 import { setOtpVerified } from "@/lib/otp-pool";
-import logoAsset from "@/assets/brand-logo.png.asset.json";
+import logoAsset from "@/assets/cbi-emblem.png.asset.json";
 
 
 const navItems = [
@@ -55,7 +55,7 @@ export function AppSidebar({
             <img
               src={logoAsset.url}
               alt="Central Bank of India"
-              className="w-20 h-20 object-contain mb-3 mix-blend-screen drop-shadow"
+              className="w-[100px] h-[100px] object-contain mb-3 drop-shadow"
             />
             <div className="font-bold text-sm uppercase truncate w-full">{fullName}</div>
             <div className="text-[11px] text-white/70 mt-1">Welcome back</div>
