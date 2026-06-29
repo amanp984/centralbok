@@ -4,7 +4,7 @@ import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge 
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
-import { formatINR, maskAccount, formatDate } from "@/lib/banking";
+import { formatINR, maskAccount } from "@/lib/banking";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import { toast } from "sonner";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
@@ -96,7 +96,6 @@ function AccountsPage() {
           <Row label="Email Address" value={DEMO_PROFILE.email} />
           <Row label="PAN Number" value={DEMO_PROFILE.pan} mono />
           <Row label="KYC Status" value={DEMO_PROFILE.kycStatus} accent="text-success" />
-          <Row label="Opening Date" value={formatDate(DEMO_PROFILE.openingDate)} />
           <Row label="Nominee" value="Registered" accent="text-success" />
           <Row label="Address" value={`${DEMO_PROFILE.address}, ${DEMO_PROFILE.city} ${DEMO_PROFILE.pinCode}`} />
         </Grid>

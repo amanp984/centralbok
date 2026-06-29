@@ -20,13 +20,12 @@ export const Route = createFileRoute("/_authenticated/statements")({
   component: StatementsPage,
 });
 
-function defaultFrom() { const d = new Date(); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0,10); }
 function today() { return new Date().toISOString().slice(0,10); }
 
 function StatementsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
-  const [from, setFrom] = useState(defaultFrom());
+  const [from, setFrom] = useState(today());
   const [to, setTo] = useState(today());
   const [direction, setDirection] = useState<"all" | "credit" | "debit">("all");
   const [mode, setMode] = useState<string>("all");

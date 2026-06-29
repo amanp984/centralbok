@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Lock, RefreshCw, Volume2, ShieldCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   DEMO_USERNAME,
   DEMO_PASSWORD,
@@ -30,6 +31,7 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState<null | "contact" | "calculator" | "help" | "more">(null);
 
   useEffect(() => {
     if (isLocallyAuthenticated() && isOtpVerified()) {
@@ -76,13 +78,13 @@ function LoginPage() {
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <a href="#" className="hover:text-white/80">Contact Us</a>
+            <button type="button" onClick={() => setInfo("contact")} className="hover:text-white/80">Contact Us</button>
             <span className="text-white/30">|</span>
-            <a href="#" className="hover:text-white/80">Calculator</a>
+            <button type="button" onClick={() => setInfo("calculator")} className="hover:text-white/80">Calculator</button>
             <span className="text-white/30">|</span>
-            <a href="#" className="hover:text-white/80">Help</a>
+            <button type="button" onClick={() => setInfo("help")} className="hover:text-white/80">Help</button>
             <span className="text-white/30">|</span>
-            <a href="#" className="hover:text-white/80">More</a>
+            <button type="button" onClick={() => setInfo("more")} className="hover:text-white/80">More</button>
             <div className="flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md">
               English <ChevronDown className="w-4 h-4" />
             </div>
@@ -118,7 +120,7 @@ function LoginPage() {
                   </label>
                   <input
                     type="text" required value={username} onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter username"
+                    placeholder="AP345578698"
                     autoComplete="username"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
@@ -129,7 +131,7 @@ function LoginPage() {
                   </label>
                   <input
                     type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="ANIKET8080"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
@@ -162,10 +164,6 @@ function LoginPage() {
                     {loading ? "Please wait…" : "Login"}
                   </button>
                 </div>
-
-                <div className="text-xs text-muted-foreground bg-white/60 border border-border rounded-md p-3 text-center">
-                  Demo credentials — username: <strong>demo123</strong> · password: <strong>demo123</strong>
-                </div>
               </form>
             </div>
           </div>
@@ -190,6 +188,50 @@ function LoginPage() {
       </footer>
 
       {loading && <BrandLoader message="Securing your session…" />}
+      <Dialog open={info !== null} onOpenChange={(o) => !o && setInfo(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {info === "contact" && "Contact Us"}
+              {info === "calculator" && "Calculators"}
+              {info === "help" && "Help & Support"}
+              {info === "more" && "More Services"}
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2 text-sm text-foreground pt-2">
+                {info === "contact" && (
+                  <>
+                    <p>24x7 Customer Care: <strong>1800 22 1911 / 1911</strong></p>
+                    <p>Email: <strong>central.bank@cbi.co.in</strong></p>
+                    <p>Website: <strong>www.centralbankofindia.co.in</strong></p>
+                  </>
+                )}
+                {info === "calculator" && (
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>EMI Calculator — available after login under Loans</li>
+                    <li>Fixed Deposit Calculator — under Deposits</li>
+                    <li>SIP / Goal Calculator — under Investments</li>
+                  </ul>
+                )}
+                {info === "help" && (
+                  <>
+                    <p>For account, card or transaction support, call <strong>1800 22 1911</strong>.</p>
+                    <p>Report fraud immediately to <strong>1930</strong> (National Cyber-crime Helpline).</p>
+                  </>
+                )}
+                {info === "more" && (
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Locate Branch / ATM</li>
+                    <li>Forex Rates</li>
+                    <li>NRI Services</li>
+                    <li>Government Schemes</li>
+                  </ul>
+                )}
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

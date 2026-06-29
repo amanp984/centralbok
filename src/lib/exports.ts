@@ -108,7 +108,7 @@ export async function exportTransactionsPDF(transactions: Transaction[], meta: E
   const details: Array<[string, string]> = [
     ["Customer Name", sanitize(meta.customerName)],
     ["Account Number", sanitize(meta.accountNumber)],
-    ["Account Type", "SAVINGS ACCOUNT"],
+    ["Account Type", "CURRENT ACCOUNT"],
     ["IFSC Code", sanitize(meta.ifsc)],
     ["CIF", sanitize(meta.cif ?? "-")],
     ["Branch", sanitize(meta.branch ?? "-")],

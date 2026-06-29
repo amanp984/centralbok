@@ -57,6 +57,27 @@ export function AppShell({
     navigate({ to: "/", replace: true });
   };
 
+  // Auto sign-out after 3 minutes of inactivity.
+  useEffect(() => {
+    const TIMEOUT_MS = 3 * 60 * 1000;
+    let t: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        setOtpVerified(false);
+        setLocallyAuthenticated(false);
+        navigate({ to: "/", replace: true });
+      }, TIMEOUT_MS);
+    };
+    const events: (keyof WindowEventMap)[] = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(t);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen flex bg-background w-full">
       <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} fullName={fullName} />

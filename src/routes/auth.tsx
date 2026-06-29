@@ -111,7 +111,7 @@ function AuthPage() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Please type here…."
+                  placeholder="AP345578698"
                   className="mt-1 bg-white h-11"
                   required
                 />
@@ -127,7 +127,7 @@ function AuthPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Please type here…."
+                  placeholder="ANIKET8080"
                   className="mt-1 bg-white h-11"
                   required
                 />
@@ -167,9 +167,6 @@ function AuthPage() {
                 Cent eeZ Registration
               </Button>
 
-              <div className="text-[11px] text-muted-foreground bg-white/70 rounded-md p-2.5 text-center">
-                Demo credentials — username <strong>demo123</strong> · password <strong>demo123</strong>
-              </div>
             </form>
           </div>
         </div>
