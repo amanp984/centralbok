@@ -9,7 +9,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
 import { DEMO_PROFILE } from "@/lib/demo-user";
-import logoAsset from "@/assets/brand-logo.png.asset.json";
+import logoAsset from "@/assets/cbi-emblem.png.asset.json";
 
 import { useBankingModal } from "@/components/modals/BankingModalProvider";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,7 +55,8 @@ function Dashboard() {
                   <img
                     src={logoAsset.url}
                     alt="CBI"
-                    className="w-12 h-12 shrink-0 object-contain mix-blend-screen"
+                    className="w-15 h-15 shrink-0 object-contain"
+                    style={{ width: "60px", height: "60px" }}
                   />
                 </div>
                 <div className="mt-4 font-mono text-lg sm:text-xl tracking-[0.18em] break-all">
