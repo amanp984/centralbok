@@ -96,7 +96,6 @@ function AccountsPage() {
           <Row label="Email Address" value={DEMO_PROFILE.email} />
           <Row label="PAN Number" value={DEMO_PROFILE.pan} mono />
           <Row label="KYC Status" value={DEMO_PROFILE.kycStatus} accent="text-success" />
-          <Row label="Opening Date" value={formatDate(DEMO_PROFILE.openingDate)} />
           <Row label="Nominee" value="Registered" accent="text-success" />
           <Row label="Address" value={`${DEMO_PROFILE.address}, ${DEMO_PROFILE.city} ${DEMO_PROFILE.pinCode}`} />
         </Grid>
