@@ -74,7 +74,6 @@ function SettingsPage() {
               <Row label="Customer ID" value={DEMO_PROFILE.customerId} mono />
               <Row label="Account Type" value={DEMO_PROFILE.accountType} />
               <Row label="Account Status" value={DEMO_PROFILE.accountStatus} accent="text-success" />
-              <Row label="Opening Date" value={formatDate(DEMO_PROFILE.openingDate)} />
               <Row label="PAN Number" value={DEMO_PROFILE.pan} mono />
             </Grid>
           </Card>
