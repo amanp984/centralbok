@@ -2,7 +2,7 @@ export const formatINR = (n: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 
 export const maskAccount = (acc: string) =>
-  acc.length <= 4 ? acc : "X".repeat(acc.length - 4) + acc.slice(-4);
+  acc.length <= 4 ? acc : `XXXX XXXX ${acc.slice(-4)}`;
 
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });

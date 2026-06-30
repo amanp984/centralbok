@@ -120,7 +120,7 @@ function LoginPage() {
                   </label>
                   <input
                     type="text" required value={username} onChange={(e) => setUsername(e.target.value)}
-                    placeholder="AP345578698"
+                    placeholder="Enter Username"
                     autoComplete="username"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
@@ -131,7 +131,7 @@ function LoginPage() {
                   </label>
                   <input
                     type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                    placeholder="ANIKET8080"
+                    placeholder="Enter Password"
                     className="w-full px-4 py-3 rounded-lg border border-primary bg-white text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>

@@ -4,7 +4,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
-import { setLocallyAuthenticated, DEMO_FULL_NAME } from "@/lib/demo-user";
+  import { setLocallyAuthenticated, DEMO_DISPLAY_NAME } from "@/lib/demo-user";
 import { setOtpVerified } from "@/lib/otp-pool";
 import { BrandLoader } from "./BrandLoader";
 
@@ -28,7 +28,7 @@ export function AppShell({
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const fullName = user?.full_name ?? DEMO_FULL_NAME;
+  const fullName = DEMO_DISPLAY_NAME;
 
   // Show a brief overlay on every route change to mask white flashes.
   const pathname = useRouterState({ select: (s) => s.location.pathname });

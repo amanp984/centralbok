@@ -111,7 +111,7 @@ function AuthPage() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="AP345578698"
+                  placeholder="Enter Username"
                   className="mt-1 bg-white h-11"
                   required
                 />
@@ -127,7 +127,7 @@ function AuthPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="ANIKET8080"
+                  placeholder="Enter Password"
                   className="mt-1 bg-white h-11"
                   required
                 />
