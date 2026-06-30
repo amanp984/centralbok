@@ -1,0 +1,1 @@
+UPDATE public.accounts SET account_number = '89725543786', ifsc = 'CBIN0282734' WHERE user_id = '00000000-0000-0000-0000-0000000000d1' AND is_primary = true;
