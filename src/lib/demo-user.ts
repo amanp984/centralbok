@@ -3,13 +3,16 @@ export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
 export const DEMO_USERNAME = "AP345578698";
 export const DEMO_PASSWORD = "ANIKET8080";
 export const DEMO_TRANSACTION_PASSWORD = "ANIKET8080";
-export const DEMO_FULL_NAME = "AJP";
+export const DEMO_DISPLAY_NAME = "AJP";
+export const DEMO_FULL_NAME = "Rambabu Prajapati";
 export const DEMO_EMAIL = "ajp81876529@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
+  displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
+  accountNumber: "89725543786",
   customerId: "CBI66724378",
   cif: "CBI66724378",
   pan: "XXXXX",

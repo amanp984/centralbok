@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/accounts")({
 // Always-visible fallback so the page never appears blank.
 const FALLBACK_ACCOUNT = {
   id: "demo-fallback",
-  account_number: "8284568572",
+  account_number: "89725543786",
   ifsc: DEMO_PROFILE.ifsc,
   balance: 0,
   is_primary: true,
