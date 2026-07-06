@@ -1,36 +1,36 @@
 // Local-only demo login. No Supabase Auth.
 export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
-export const DEMO_USERNAME = "AP345578698";
-export const DEMO_PASSWORD = "ANIKET8080";
-export const DEMO_TRANSACTION_PASSWORD = "ANIKET8080";
-export const DEMO_DISPLAY_NAME = "AJP";
-export const DEMO_FULL_NAME = "Rambabu Prajapati";
-export const DEMO_EMAIL = "ajp81876529@gmail.com";
+export const DEMO_USERNAME = "AP3758846438";
+export const DEMO_PASSWORD = "ANIKET9090";
+export const DEMO_TRANSACTION_PASSWORD = "ANIKET9090";
+export const DEMO_DISPLAY_NAME = "SUKHDEV FRUITS";
+export const DEMO_FULL_NAME = "Sukhdev Fruits";
+export const DEMO_EMAIL = "sukhdevfruits@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "89725543786",
-  customerId: "CBI66724378",
-  cif: "CBI66724378",
-  pan: "XXXXX",
-  mobile: "+9198XXXXXX68",
+  accountNumber: "67284628125",
+  customerId: "CBI664584312",
+  cif: "CBI664584312",
+  pan: "XXXXX5978D",
+  mobile: "+9177XXXXXX79",
   email: DEMO_EMAIL,
-  address: "B-204 Sector 4, Sun Residency, Andheri East",
-  city: "Mumbai City",
-  state: "Maharashtra",
-  pinCode: "400078",
-  branch: "Andheri East Mumbai",
-  branchCode: "0282734",
-  ifsc: "CBIN0282734",
+  address: "Jaipur Naka",
+  city: "Jaipur",
+  state: "Rajasthan",
+  pinCode: "302012",
+  branch: "JAIPUR NAKA",
+  branchCode: "0281065",
+  ifsc: "CBIN0281065",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
   kycReference: "KYC-CBI-20240514-998271",
   kycCompletionDate: "2024-05-14",
-  micr: "400016027",
+  micr: "302016065",
 } as const;
 
 // Per-mode daily limits (₹).
