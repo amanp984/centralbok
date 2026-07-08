@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } 
 import { ShieldCheck, RotateCw } from "lucide-react";
 import { isLocallyAuthenticated } from "@/lib/demo-user";
 import { verifyAndConsumeOtp, setOtpVerified, isOtpVerified } from "@/lib/otp-pool";
-import { BrandLoader } from "@/components/BrandLoader";
+import { AppLoader } from "@/components/AppLoader";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 export const Route = createFileRoute("/otp")({
@@ -198,7 +198,7 @@ function OtpPage() {
         </form>
       </div>
 
-      {verifying && <BrandLoader message="Verifying OTP..." />}
+      {verifying && <AppLoader message="Verifying OTP..." />}
     </div>
   );
 }
