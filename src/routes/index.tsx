@@ -10,7 +10,7 @@ import {
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
-import { BrandLoader } from "@/components/BrandLoader";
+import { AppLoader } from "@/components/AppLoader";
 import cbiOfficialLogo from "@/assets/cbi-official-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -187,7 +187,7 @@ function LoginPage() {
         </div>
       </footer>
 
-      {loading && <BrandLoader message="Securing your session…" />}
+      {loading && <AppLoader message="Securing your session…" />}
       <Dialog open={info !== null} onOpenChange={(o) => !o && setInfo(null)}>
         <DialogContent>
           <DialogHeader>

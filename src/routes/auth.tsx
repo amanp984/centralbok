@@ -11,7 +11,7 @@ import {
 } from "@/lib/demo-user";
 
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
-import { BrandLoader } from "@/components/BrandLoader";
+import { AppLoader } from "@/components/AppLoader";
 import bannerAsset from "@/assets/cbi-official-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
@@ -186,7 +186,7 @@ function AuthPage() {
         </div>
       </main>
 
-      {submitting && <BrandLoader message="Securing your session…" />}
+      {submitting && <AppLoader message="Securing your session…" />}
     </div>
   );
 }
