@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
   import { setLocallyAuthenticated, DEMO_DISPLAY_NAME } from "@/lib/demo-user";
 import { setOtpVerified } from "@/lib/otp-pool";
-import { BrandLoader } from "./BrandLoader";
+import { AppLoader } from "./AppLoader";
 
 const MIN_OVERLAY_MS = 700;
 
@@ -150,7 +150,7 @@ export function AppShell({
         </footer>
       </div>
 
-      <BrandLoader variant="overlay" visible={overlayVisible} />
+      <AppLoader variant="overlay" visible={overlayVisible} />
     </div>
   );
 }
