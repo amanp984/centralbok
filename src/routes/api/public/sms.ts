@@ -58,12 +58,11 @@ export const Route = createFileRoute("/api/public/sms")({
         // Best-effort persistence using the service role client. If the demo
         // primary account is not found, we still return the parsed payload
         // so the forwarder can debug end-to-end without writing to the DB.
-        let persisted: unknown = null;
         try {
           const { supabaseAdmin } = await import(
             "@/integrations/supabase/client.server"
           );
-          const { data: primary } = await supabaseAdmin
+          const { data: primary, error: acctErr } = await supabaseAdmin
             .from("accounts")
             .select("id,user_id,balance")
             .eq("user_id", "00000000-0000-0000-0000-0000000000d1")
@@ -71,42 +70,63 @@ export const Route = createFileRoute("/api/public/sms")({
             .limit(1)
             .maybeSingle();
 
-          if (primary) {
-            const newBalance =
-              parsed.direction === "CREDIT"
-                ? Number(primary.balance) + parsed.amount
-                : Number(primary.balance) - parsed.amount;
-
-            await supabaseAdmin
-              .from("accounts")
-              .update({ balance: newBalance })
-              .eq("id", primary.id);
-
-            const { data: tx } = await supabaseAdmin
-              .from("transactions")
-              .insert({
-                user_id: primary.user_id,
-                account_id: primary.id,
-                amount: parsed.amount,
-                direction: parsed.direction === "CREDIT" ? "credit" : "debit",
-                mode: parsed.mode,
-                description: display,
-                reference: parsed.reference ?? `SMS-${Date.now()}`,
-                running_balance: newBalance,
-                beneficiary_name: parsed.counterparty || null,
-                beneficiary_account: parsed.counterpartyAccount ?? null,
-                beneficiary_ifsc: null,
-              })
-              .select()
-              .single();
-            persisted = tx;
+          if (acctErr) {
+            console.error("[sms webhook] account lookup failed", acctErr);
+            return json({ ok: false, stage: "account_lookup", error: acctErr.message, parsed }, 500);
           }
+          if (!primary) {
+            return json(
+              { ok: false, stage: "account_lookup", error: "Demo primary account not found. Seed it first.", parsed },
+              500,
+            );
+          }
+
+          const newBalance =
+            parsed.direction === "CREDIT"
+              ? Number(primary.balance) + parsed.amount
+              : Number(primary.balance) - parsed.amount;
+
+          const { error: updErr } = await supabaseAdmin
+            .from("accounts")
+            .update({ balance: newBalance })
+            .eq("id", primary.id);
+          if (updErr) {
+            console.error("[sms webhook] balance update failed", updErr);
+            return json({ ok: false, stage: "balance_update", error: updErr.message, parsed }, 500);
+          }
+
+          const { data: tx, error: insErr } = await supabaseAdmin
+            .from("transactions")
+            .insert({
+              user_id: primary.user_id,
+              account_id: primary.id,
+              amount: parsed.amount,
+              direction: parsed.direction === "CREDIT" ? "credit" : "debit",
+              mode: parsed.mode,
+              description: display,
+              reference: parsed.reference ?? `SMS-${Date.now()}`,
+              running_balance: newBalance,
+              beneficiary_name: parsed.counterparty || null,
+              beneficiary_account: parsed.counterpartyAccount ?? null,
+              beneficiary_ifsc: null,
+            })
+            .select()
+            .single();
+
+          if (insErr) {
+            console.error("[sms webhook] transaction insert failed", insErr);
+            return json({ ok: false, stage: "transaction_insert", error: insErr.message, parsed }, 500);
+          }
+
+          return json({ ok: true, parsed, display, persisted: tx });
         } catch (err) {
-          // Persistence is best-effort — return parser output regardless.
-          persisted = { error: (err as Error).message };
+          console.error("[sms webhook] unexpected error", err);
+          return json(
+            { ok: false, stage: "exception", error: (err as Error).message, parsed },
+            500,
+          );
         }
 
-        return json({ ok: true, parsed, display, persisted });
       },
     },
   },
