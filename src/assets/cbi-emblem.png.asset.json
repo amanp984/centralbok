@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "876f8ba3-d404-47af-90d9-cae68f7f408e",
-  "project_id": "c6920da9-172a-4646-9d98-d6c4c5b80c3f",
-  "url": "/__l5e/assets-v1/876f8ba3-d404-47af-90d9-cae68f7f408e/cbi-emblem.png",
-  "r2_key": "a/v1/c6920da9-172a-4646-9d98-d6c4c5b80c3f/876f8ba3-d404-47af-90d9-cae68f7f408e/cbi-emblem.png",
-  "original_filename": "cbi-emblem.png",
-  "size": 36924,
   "content_type": "image/png",
-  "created_at": "2026-06-29T13:10:26Z"
+  "created_at": "2026-06-29T13:10:26Z",
+  "original_filename": "cbi-emblem.png",
+  "project_id": "2b955ae8-a345-4591-b483-ef12b0544eaa",
+  "r2_key": "a/v1/2b955ae8-a345-4591-b483-ef12b0544eaa/876f8ba3-d404-47af-90d9-cae68f7f408e/cbi-emblem.png",
+  "size": 36924,
+  "url": "/__l5e/assets-v1/876f8ba3-d404-47af-90d9-cae68f7f408e/cbi-emblem.png",
+  "version": 1
 }
