@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -30,6 +30,40 @@ function StatementsPage() {
   const [direction, setDirection] = useState<"all" | "credit" | "debit">("all");
   const [mode, setMode] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const userAdjustedRef = useRef(false);
+
+  // Auto-adjust default date range to the most recent transaction date if
+  // "today" has no transactions. Runs once on mount; skipped if the user
+  // has already changed the from/to inputs.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const t = today();
+      const { data: todays } = await supabase
+        .from("transactions")
+        .select("id")
+        .gte("created_at", `${t}T00:00:00`)
+        .lte("created_at", `${t}T23:59:59.999`)
+        .limit(1);
+      if (cancelled || userAdjustedRef.current) return;
+      if (todays && todays.length > 0) return;
+      const { data: latest } = await supabase
+        .from("transactions")
+        .select("created_at")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (cancelled || userAdjustedRef.current) return;
+      const first = latest?.[0]?.created_at;
+      if (first) {
+        const d = String(first).slice(0, 10);
+        setFrom(d);
+        setTo(d);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["statement", user?.id, from, to],
@@ -81,8 +115,8 @@ function StatementsPage() {
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => { userAdjustedRef.current = true; setFrom(e.target.value); }} /></div>
+            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => { userAdjustedRef.current = true; setTo(e.target.value); }} /></div>
             <div>
               <Label>Direction</Label>
               <Select value={direction} onValueChange={(v) => setDirection(v as typeof direction)}>

@@ -14,6 +14,23 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BankingModalProvider } from "@/components/modals/BankingModalProvider";
 import { Toaster } from "@/components/ui/sonner";
 
+// Strict session: any full page load (hard refresh, new tab, direct URL) clears
+// the local demo session so the user must sign in again. SPA navigations don't
+// re-execute this module, so in-app navigation preserves the session.
+if (typeof window !== "undefined") {
+  try {
+    window.sessionStorage.removeItem("bank_demo_auth");
+    window.sessionStorage.removeItem("bank_demo_otp_verified");
+  } catch { /* ignore */ }
+  // Force re-check when the page is restored from the browser bfcache (back
+  // button after logout). Reload so `beforeLoad` guards run again.
+  window.addEventListener("pageshow", (e) => {
+    if ((e as PageTransitionEvent).persisted) {
+      window.location.reload();
+    }
+  });
+}
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
