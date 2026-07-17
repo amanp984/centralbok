@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, type Transaction } from "@/hooks/use-banking-data";
+import { useNewIds } from "@/hooks/use-new-ids";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
