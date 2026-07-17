@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
+import { useNewIds } from "@/hooks/use-new-ids";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import logoAsset from "@/assets/cbi-emblem.png.asset.json";
 
@@ -28,6 +29,7 @@ function Dashboard() {
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id);
   const { data: transactions, isLoading: txLoading } = useTransactions(user?.id, 5);
+  const newTxIds = useNewIds(transactions);
   const modal = useBankingModal();
   const [showBalance, setShowBalance] = useState(false);
 
@@ -179,7 +181,7 @@ function Dashboard() {
                     ))
                   ) : transactions && transactions.length > 0 ? (
                     transactions.map((t) => (
-                      <tr key={t.id} className="border-t border-border hover:bg-secondary/50 transition-colors align-top">
+                      <tr key={t.id} className={`border-t border-border hover:bg-secondary/50 transition-colors align-top ${newTxIds.has(t.id) ? "row-highlight" : ""}`}>
                         <td className="px-2.5 py-2.5 text-foreground whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
                         <td className="px-2.5 py-2.5 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1 font-medium ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>

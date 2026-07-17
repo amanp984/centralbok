@@ -125,3 +125,12 @@
   50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45)); }
 }
 
+@keyframes row-highlight {
+  0% { background-color: rgba(22, 163, 74, 0.22); }
+  100% { background-color: transparent; }
+}
+.row-highlight {
+  animation: row-highlight 1.6s ease-out;
+}
+
+

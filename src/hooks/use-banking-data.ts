@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -93,30 +93,53 @@ export function useBeneficiaries(userId: string | undefined) {
 }
 
 /**
- * Subscribe once (at the app shell) to realtime changes for the user's
- * banking tables and invalidate the corresponding Query caches. Replaces
- * 30s polling everywhere.
+ * Subscribe (once at the app shell) to realtime changes for the user's
+ * banking tables and invalidate any related Query caches. Falls back to
+ * a lightweight 2.5s polling loop whenever the realtime channel is not
+ * in the SUBSCRIBED state.
  */
 export function useBankingRealtime(userId: string | undefined) {
   const qc = useQueryClient();
+  const [connected, setConnected] = useState(false);
+  const connectedRef = useRef(false);
+
   useEffect(() => {
     if (!userId) return;
-    // Open demo: no Supabase Auth, so use a plain (non-private) channel.
+
+    const invalidateAll = () => {
+      // Invalidate every transactions/accounts/beneficiaries-derived query
+      // (dashboard, statements custom range, etc.) via predicate.
+      qc.invalidateQueries({
+        predicate: (q) => {
+          const k = q.queryKey?.[0];
+          return k === "transactions" || k === "accounts" || k === "beneficiaries" || k === "statement";
+        },
+      });
+    };
+
     const channel = supabase
       .channel(`banking:${userId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` }, () => {
-        qc.invalidateQueries({ queryKey: qk.transactions(userId) });
-        qc.invalidateQueries({ queryKey: qk.accounts(userId) });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "accounts", filter: `user_id=eq.${userId}` }, () => {
-        qc.invalidateQueries({ queryKey: qk.accounts(userId) });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "beneficiaries", filter: `user_id=eq.${userId}` }, () => {
-        qc.invalidateQueries({ queryKey: qk.beneficiaries(userId) });
-      })
-      .subscribe();
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` }, invalidateAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "accounts", filter: `user_id=eq.${userId}` }, invalidateAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "beneficiaries", filter: `user_id=eq.${userId}` }, invalidateAll)
+      .subscribe((status) => {
+        const ok = status === "SUBSCRIBED";
+        connectedRef.current = ok;
+        setConnected(ok);
+      });
+
+    // Fallback background poll (every 2.5s) whenever realtime is not
+    // currently connected. Cheap: invalidateQueries is a no-op for
+    // inactive queries and only refetches ones that are mounted.
+    const poll = setInterval(() => {
+      if (!connectedRef.current) invalidateAll();
+    }, 2500);
+
     return () => {
+      clearInterval(poll);
       supabase.removeChannel(channel);
     };
   }, [userId, qc]);
+
+  return { connected };
 }

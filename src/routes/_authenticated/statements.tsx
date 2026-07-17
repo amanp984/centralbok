@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, type Transaction } from "@/hooks/use-banking-data";
+import { useNewIds } from "@/hooks/use-new-ids";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,7 @@ function StatementsPage() {
       return true;
     });
   }, [data, direction, mode, search]);
+  const newTxIds = useNewIds(filtered);
 
   const primary = accounts?.find((a) => a.is_primary) ?? accounts?.[0];
   const totals = filtered.reduce((a, t) => {
@@ -189,7 +191,7 @@ function StatementsPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((t) => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id} className={newTxIds.has(t.id) ? "row-highlight" : ""}>
                       <TableCell className="whitespace-nowrap text-xs">{formatDate(t.created_at)}</TableCell>
                       <TableCell className="font-mono text-xs">{t.reference}</TableCell>
                       <TableCell className="max-w-xs truncate">{t.description ?? t.beneficiary_name ?? "—"}</TableCell>
