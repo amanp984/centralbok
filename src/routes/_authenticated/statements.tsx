@@ -191,7 +191,7 @@ function StatementsPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((t) => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id} className={newTxIds.has(t.id) ? "row-highlight" : ""}>
                       <TableCell className="whitespace-nowrap text-xs">{formatDate(t.created_at)}</TableCell>
                       <TableCell className="font-mono text-xs">{t.reference}</TableCell>
                       <TableCell className="max-w-xs truncate">{t.description ?? t.beneficiary_name ?? "—"}</TableCell>
