@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
-import { formatDateTime, formatINR } from "./banking";
+import { formatDate, formatINR } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 type ExportMeta = {
@@ -34,7 +34,7 @@ const sanitize = (s: string) =>
 export function exportTransactionsCSV(transactions: Transaction[], filename = "statement.csv") {
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
   const rows = transactions.map((t) => [
-    formatDateTime(t.created_at),
+    formatDate(t.created_at),
     t.reference,
     (t.description ?? t.beneficiary_name ?? "").replace(/,/g, " "),
     t.mode,
@@ -48,7 +48,7 @@ export function exportTransactionsCSV(transactions: Transaction[], filename = "s
 
 export function exportTransactionsExcel(transactions: Transaction[], filename = "statement.xlsx") {
   const data = transactions.map((t) => ({
-    Date: formatDateTime(t.created_at),
+    Date: formatDate(t.created_at),
     Reference: t.reference,
     Description: t.description ?? t.beneficiary_name ?? "",
     Mode: t.mode,
@@ -159,7 +159,7 @@ export async function exportTransactionsPDF(transactions: Transaction[], meta: E
     startY: tableY,
     head: [["Date", "Narration", "Cheque/Ref No.", "Withdrawals (Rs.)", "Deposits (Rs.)", "Balance (Rs.)"]],
     body: transactions.map((t) => [
-      sanitize(formatDateTime(t.created_at)),
+      sanitize(formatDate(t.created_at)),
       sanitize(t.description ?? t.beneficiary_name ?? t.mode),
       sanitize(t.reference),
       t.direction === "debit" ? formatRs(t.amount) : "-",
@@ -207,7 +207,7 @@ export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, fi
   const row = (k: string, v: string) => { doc.setFont("helvetica","bold"); doc.text(k, 14, y); doc.setFont("helvetica","normal"); doc.text(v, 80, y); y += 8; };
   row("Status", t.direction === "debit" ? "DEBIT - SUCCESS" : "CREDIT - SUCCESS");
   row("Reference No.", t.reference);
-  row("Date & Time", formatDateTime(t.created_at));
+  row("Date", formatDate(t.created_at));
   row("Mode", t.mode);
   row("Amount", formatRs(t.amount));
   row("From Account", meta.accountNumber);
