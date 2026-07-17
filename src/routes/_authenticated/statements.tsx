@@ -89,6 +89,7 @@ function StatementsPage() {
       return true;
     });
   }, [data, direction, mode, search]);
+  const newTxIds = useNewIds(filtered);
 
   const primary = accounts?.find((a) => a.is_primary) ?? accounts?.[0];
   const totals = filtered.reduce((a, t) => {
