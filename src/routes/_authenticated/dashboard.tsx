@@ -29,6 +29,7 @@ function Dashboard() {
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id);
   const { data: transactions, isLoading: txLoading } = useTransactions(user?.id, 5);
+  const newTxIds = useNewIds(transactions);
   const modal = useBankingModal();
   const [showBalance, setShowBalance] = useState(false);
 
