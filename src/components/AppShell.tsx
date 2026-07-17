@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Menu, Bell, Search, Power, ChevronRight, Home } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
@@ -66,6 +67,7 @@ export function AppShell({
       t = setTimeout(() => {
         setOtpVerified(false);
         setLocallyAuthenticated(false);
+        toast.error("Your session has expired due to inactivity. Please sign in again.");
         navigate({ to: "/", replace: true });
       }, TIMEOUT_MS);
     };

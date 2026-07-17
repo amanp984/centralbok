@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatINR, formatDateTime, maskAccount } from "@/lib/banking";
+import { formatINR, formatDate, maskAccount } from "@/lib/banking";
 import { exportTransactionsCSV, exportTransactionsExcel, exportTransactionsPDF } from "@/lib/exports";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 
@@ -190,7 +190,7 @@ function StatementsPage() {
                 <TableBody>
                   {filtered.map((t) => (
                     <TableRow key={t.id}>
-                      <TableCell className="whitespace-nowrap text-xs">{formatDateTime(t.created_at)}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">{formatDate(t.created_at)}</TableCell>
                       <TableCell className="font-mono text-xs">{t.reference}</TableCell>
                       <TableCell className="max-w-xs truncate">{t.description ?? t.beneficiary_name ?? "—"}</TableCell>
                       <TableCell><span className="px-2 py-0.5 bg-secondary rounded text-xs">{t.mode}</span></TableCell>
