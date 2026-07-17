@@ -181,7 +181,7 @@ function Dashboard() {
                     ))
                   ) : transactions && transactions.length > 0 ? (
                     transactions.map((t) => (
-                      <tr key={t.id} className="border-t border-border hover:bg-secondary/50 transition-colors align-top">
+                      <tr key={t.id} className={`border-t border-border hover:bg-secondary/50 transition-colors align-top ${newTxIds.has(t.id) ? "row-highlight" : ""}`}>
                         <td className="px-2.5 py-2.5 text-foreground whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
                         <td className="px-2.5 py-2.5 whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1 font-medium ${t.direction === "debit" ? "text-destructive" : "text-success"}`}>
