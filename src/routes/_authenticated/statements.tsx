@@ -215,7 +215,7 @@ function StatementsPage() {
                       <TableCell className={`font-semibold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}>
                         {t.direction === "credit" ? "+" : "−"} {formatINR(t.amount)}
                       </TableCell>
-                      <TableCell>{formatINR(t.running_balance ?? 0)}</TableCell>
+                      <TableCell>{formatINR(t.computed_balance)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
