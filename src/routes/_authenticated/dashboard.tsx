@@ -28,8 +28,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id);
-  const { data: transactions, isLoading: txLoading } = useTransactions(user?.id, 5);
-  const newTxIds = useNewIds(transactions);
+  const { data: computed, isLoading: txLoading } = useTransactionsWithBalances(user?.id);
+  const recentTx = (computed?.items ?? []).slice(-5).reverse();
+  const finalBalance = computed?.finalBalance ?? 0;
+  const newTxIds = useNewIds(recentTx);
   const modal = useBankingModal();
   const [showBalance, setShowBalance] = useState(false);
 
