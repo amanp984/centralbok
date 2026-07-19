@@ -48,36 +48,45 @@ const sanitize = (s: string) =>
     // strip any other non-printable / non-latin1 chars that helvetica can't render
     .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "");
 
-export function exportTransactionsCSV(transactions: Transaction[], filename = "statement.csv") {
+export function exportTransactionsCSV(transactions: TxLike[], filename = "statement.csv", openingBalance = 0) {
+  const balanced = balanceRows(transactions, openingBalance);
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
-  const rows = transactions.map((t) => [
+  const rows = balanced.map((t) => [
     formatDate(t.created_at),
     t.reference,
     (t.description ?? t.beneficiary_name ?? "").replace(/,/g, " "),
     t.mode,
     t.direction.toUpperCase(),
-    t.amount.toFixed(2),
-    (t.running_balance ?? 0).toFixed(2),
+    Number(t.amount).toFixed(2),
+    Number(t.computed_balance).toFixed(2),
   ]);
-  const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  // Closing balance summary row derived from the last (newest) displayed txn
+  // when caller passes newest-first; otherwise from the max of computed values.
+  const closing = balanced.length
+    ? Number(balanced[balanced.length - 1].computed_balance)
+    : openingBalance;
+  const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2)];
+  const csv = [headers, ...rows, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename);
 }
 
-export function exportTransactionsExcel(transactions: Transaction[], filename = "statement.xlsx") {
-  const data = transactions.map((t) => ({
+export function exportTransactionsExcel(transactions: TxLike[], filename = "statement.xlsx", openingBalance = 0) {
+  const balanced = balanceRows(transactions, openingBalance);
+  const data = balanced.map((t) => ({
     Date: formatDate(t.created_at),
     Reference: t.reference,
     Description: t.description ?? t.beneficiary_name ?? "",
     Mode: t.mode,
     Direction: t.direction.toUpperCase(),
-    "Amount (INR)": Number(t.amount.toFixed(2)),
-    "Balance (INR)": Number((t.running_balance ?? 0).toFixed(2)),
+    "Amount (INR)": Number(Number(t.amount).toFixed(2)),
+    "Balance (INR)": Number(Number(t.computed_balance).toFixed(2)),
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Statement");
   XLSX.writeFile(wb, filename);
 }
+
 
 async function loadLogoDataUrl(): Promise<string | null> {
   try {
