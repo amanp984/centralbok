@@ -7,7 +7,7 @@ import {
   MoreHorizontal, ChevronRight, Eye, EyeOff, ArrowUpRight, ArrowDownLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import logoAsset from "@/assets/cbi-emblem.png.asset.json";
