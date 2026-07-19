@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
-import { formatDate, formatINR } from "./banking";
+import { formatDate, computeRunningBalances } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 type ExportMeta = {
@@ -16,6 +16,23 @@ type ExportMeta = {
   fromDate?: string;
   toDate?: string;
 };
+
+/**
+ * Accept any Transaction-like row. If rows already carry a `computed_balance`
+ * we trust it; otherwise we recompute forward from `meta.openingBalance ?? 0`,
+ * ignoring any stored `running_balance` value.
+ */
+type TxLike = Transaction & { computed_balance?: number };
+
+function balanceRows(transactions: readonly TxLike[], openingBalance: number) {
+  // Preserve caller order for display, but compute balances on ascending order.
+  const hasComputed = transactions.every((t) => typeof t.computed_balance === "number");
+  if (hasComputed) return transactions as ReadonlyArray<Required<Pick<TxLike, "computed_balance">> & TxLike>;
+  const { items } = computeRunningBalances(transactions as Transaction[], openingBalance);
+  const byId = new Map(items.map((i) => [i.id, i.computed_balance]));
+  return transactions.map((t) => ({ ...t, computed_balance: byId.get(t.id) ?? 0 }));
+}
+
 
 // jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
 const formatRs = (n: number) =>
