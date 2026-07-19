@@ -94,6 +94,30 @@ export function useBeneficiaries(userId: string | undefined) {
 }
 
 /**
+ * Fetch ALL transactions for the user and compute an authoritative running
+ * balance client-side (oldest → newest). Any stored `running_balance` on the
+ * DB rows is ignored — the computed value is the single source of truth for
+ * every UI surface (dashboard, statements, exports).
+ */
+export type TransactionWithBalance = WithComputedBalance<Transaction>;
+
+export function useTransactionsWithBalances(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["transactions", "with-balances", userId ?? ""] as const,
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const txs = (data ?? []) as Transaction[];
+      return computeRunningBalances<Transaction>(txs, 0);
+    },
+  });
+}
+
+/**
  * Subscribe (once at the app shell) to realtime changes for the user's
  * banking tables and invalidate any related Query caches. Falls back to
  * a lightweight 2.5s polling loop whenever the realtime channel is not
