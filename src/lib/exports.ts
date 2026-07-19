@@ -156,14 +156,17 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...PRIMARY);
   doc.text("Statement Summary", sx + 3, blockY - 1);
 
-  const totals = transactions.reduce(
+  const totals = balanced.reduce(
     (a, t) => { if (t.direction === "credit") a.cr += Number(t.amount); else a.dr += Number(t.amount); return a; },
     { cr: 0, dr: 0 }
   );
-  const last = transactions[transactions.length - 1];
-  const first = transactions[0];
-  const opening = meta.openingBalance ?? (last ? Number(last.running_balance ?? 0) - (last.direction === "credit" ? Number(last.amount) : -Number(last.amount)) : 0);
-  const closing = meta.closingBalance ?? (first ? Number(first.running_balance ?? 0) : opening);
+  // Balances are ordered by caller (typically newest-first for display).
+  // Find asc first/last by timestamp for opening/closing derivation.
+  const ascBalanced = [...balanced].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const firstAsc = ascBalanced[0];
+  const lastAsc = ascBalanced[ascBalanced.length - 1];
+  const opening = meta.openingBalance ?? (firstAsc ? Number(firstAsc.computed_balance) - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount)) : 0);
+  const closing = meta.closingBalance ?? (lastAsc ? Number(lastAsc.computed_balance) : opening);
 
   doc.setTextColor(...TEXT); doc.setFontSize(9);
   const sRows: Array<[string, string]> = [
