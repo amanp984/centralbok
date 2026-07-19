@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { computeRunningBalances, type WithComputedBalance } from "@/lib/banking";
 
 export type Account = {
   id: string;
