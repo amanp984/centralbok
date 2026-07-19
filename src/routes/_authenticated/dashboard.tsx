@@ -89,7 +89,7 @@ function Dashboard() {
                 <div className="mt-4 text-xs text-white/80">Available Balance</div>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="text-2xl font-bold">
-                    {accountsLoading ? <Skeleton className="h-8 w-40 bg-white/20" /> : showBalance ? formatINR(primary?.balance ?? 0) : "₹ ●●●●●●●●"}
+                    {accountsLoading || txLoading ? <Skeleton className="h-8 w-40 bg-white/20" /> : showBalance ? formatINR(finalBalance) : "₹ ●●●●●●●●"}
                   </div>
                   <button onClick={() => setShowBalance(!showBalance)} className="flex items-center gap-1 text-xs text-white/90 hover:text-white">
                     {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
