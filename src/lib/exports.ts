@@ -103,7 +103,8 @@ async function loadLogoDataUrl(): Promise<string | null> {
   }
 }
 
-export async function exportTransactionsPDF(transactions: Transaction[], meta: ExportMeta, filename = "statement.pdf") {
+export async function exportTransactionsPDF(transactions: TxLike[], meta: ExportMeta, filename = "statement.pdf") {
+  const balanced = balanceRows(transactions, meta.openingBalance ?? 0);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PRIMARY: [number, number, number] = [11, 77, 162];
   const TEXT: [number, number, number] = [31, 42, 68];
