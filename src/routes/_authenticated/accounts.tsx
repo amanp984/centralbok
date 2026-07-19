@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
 import { formatINR, maskAccount } from "@/lib/banking";
 import { DEMO_PROFILE } from "@/lib/demo-user";
@@ -27,16 +27,20 @@ const FALLBACK_ACCOUNT = {
 function AccountsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
-  const { data: transactions } = useTransactions(user?.id, 500);
+  const { data: computed } = useTransactionsWithBalances(user?.id);
   const [reveal, setReveal] = useState(false);
 
   const primary =
     accounts?.find((a) => a.is_primary) ?? accounts?.[0] ?? FALLBACK_ACCOUNT;
 
-  const monthlyCredit = (transactions ?? [])
+  // Use the computed balance from transaction history (same source as Dashboard)
+  const availableBalance = computed?.finalBalance ?? 0;
+
+  // Calculate monthly credits/debits from transaction history
+  const monthlyCredit = (computed?.items ?? [])
     .filter((t) => t.direction === "credit" && isThisMonth(t.created_at))
     .reduce((s, t) => s + Number(t.amount), 0);
-  const monthlyDebit = (transactions ?? [])
+  const monthlyDebit = (computed?.items ?? [])
     .filter((t) => t.direction === "debit" && isThisMonth(t.created_at))
     .reduce((s, t) => s + Number(t.amount), 0);
 
@@ -69,7 +73,7 @@ function AccountsPage() {
           </div>
 
           <div className="mt-5 text-sm text-white/80">Available Balance</div>
-          <div className="text-3xl font-bold">{formatINR(primary.balance)}</div>
+          <div className="text-3xl font-bold">{formatINR(availableBalance)}</div>
 
           <div className="mt-5 flex flex-wrap gap-2">
             <Link to="/transfer"><Button size="sm" variant="secondary"><ArrowLeftRight className="w-4 h-4 mr-1" />Transfer</Button></Link>
@@ -104,11 +108,11 @@ function AccountsPage() {
       {/* Balance summary */}
       <Card title="Balance Summary">
         <Grid>
-          <Row label="Available Balance" value={formatINR(primary.balance)} accent="text-success" />
-          <Row label="Ledger Balance" value={formatINR(primary.balance)} />
+          <Row label="Available Balance" value={formatINR(availableBalance)} accent="text-success" />
+          <Row label="Ledger Balance" value={formatINR(availableBalance)} />
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
-          <Row label="Transaction Count" value={String((transactions ?? []).length)} />
+          <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
           <Row label="Hold Amount" value={formatINR(0)} />
         </Grid>
       </Card>
