@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { computeRunningBalances, type WithComputedBalance } from "@/lib/banking";
 
 export type Account = {
   id: string;
@@ -88,6 +89,30 @@ export function useBeneficiaries(userId: string | undefined) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Beneficiary[];
+    },
+  });
+}
+
+/**
+ * Fetch ALL transactions for the user and compute an authoritative running
+ * balance client-side (oldest → newest). Any stored `running_balance` on the
+ * DB rows is ignored — the computed value is the single source of truth for
+ * every UI surface (dashboard, statements, exports).
+ */
+export type TransactionWithBalance = WithComputedBalance<Transaction>;
+
+export function useTransactionsWithBalances(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["transactions", "with-balances", userId ?? ""] as const,
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const txs = (data ?? []) as Transaction[];
+      return computeRunningBalances<Transaction>(txs, 0);
     },
   });
 }

@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, type Transaction } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -66,39 +65,56 @@ function StatementsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["statement", user?.id, from, to],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const start = new Date(from + "T00:00:00").toISOString();
-      const end = new Date(to + "T23:59:59").toISOString();
-      const { data, error } = await supabase.from("transactions").select("*")
-        .gte("created_at", start).lte("created_at", end)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Transaction[];
-    },
-  });
+  const { data: computed, isLoading } = useTransactionsWithBalances(user?.id);
+  const allItems = useMemo(() => computed?.items ?? [], [computed]);
+
+  // Filter for display: date range + direction/mode/search. Balances on each
+  // row are the client-computed running balance across ALL transactions, so
+  // filtering never invalidates them.
+  const inRange = useMemo(() => {
+    const start = new Date(from + "T00:00:00").getTime();
+    const end = new Date(to + "T23:59:59.999").getTime();
+    return allItems.filter((t) => {
+      const ts = new Date(t.created_at).getTime();
+      return ts >= start && ts <= end;
+    });
+  }, [allItems, from, to]);
 
   const filtered = useMemo(() => {
-    return (data ?? []).filter((t) => {
+    const q = search.toLowerCase();
+    const rows = inRange.filter((t) => {
       if (direction !== "all" && t.direction !== direction) return false;
       if (mode !== "all" && t.mode !== mode) return false;
-      const q = search.toLowerCase();
       if (q && !`${t.reference} ${t.description ?? ""} ${t.beneficiary_name ?? ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [data, direction, mode, search]);
+    // Display newest-first; balances stay authoritative (were computed asc).
+    return [...rows].reverse();
+  }, [inRange, direction, mode, search]);
   const newTxIds = useNewIds(filtered);
 
   const primary = accounts?.find((a) => a.is_primary) ?? accounts?.[0];
-  const totals = filtered.reduce((a, t) => {
-    if (t.direction === "credit") a.credit += t.amount; else a.debit += t.amount;
-    return a;
-  }, { credit: 0, debit: 0 });
+  const totals = filtered.reduce(
+    (a: { credit: number; debit: number }, t: TransactionWithBalance) => {
+      if (t.direction === "credit") a.credit += Number(t.amount);
+      else a.debit += Number(t.amount);
+      return a;
+    },
+    { credit: 0, debit: 0 }
+  );
 
-  const opening = filtered.length ? Number(filtered[filtered.length - 1].running_balance ?? 0) - (filtered[filtered.length - 1].direction === "credit" ? Number(filtered[filtered.length - 1].amount) : -Number(filtered[filtered.length - 1].amount)) : Number(primary?.balance ?? 0);
-  const closing = filtered.length ? Number(filtered[0].running_balance ?? 0) : Number(primary?.balance ?? 0);
+  // Opening balance for the selected range = computed balance right BEFORE
+  // the earliest in-range transaction (in ascending order). Closing = last
+  // in-range balance. Both derived from the shared computation.
+  const ascInRange = useMemo(() => [...inRange].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  ), [inRange]);
+  const firstAsc = ascInRange[0];
+  const lastAsc = ascInRange[ascInRange.length - 1];
+  const opening = firstAsc
+    ? firstAsc.computed_balance - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount))
+    : (computed?.finalBalance ?? 0);
+  const closing = lastAsc ? lastAsc.computed_balance : opening;
 
   const meta = {
     customerName: DEMO_PROFILE.fullName,
@@ -199,7 +215,7 @@ function StatementsPage() {
                       <TableCell className={`font-semibold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}>
                         {t.direction === "credit" ? "+" : "−"} {formatINR(t.amount)}
                       </TableCell>
-                      <TableCell>{formatINR(t.running_balance ?? 0)}</TableCell>
+                      <TableCell>{formatINR(t.computed_balance)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

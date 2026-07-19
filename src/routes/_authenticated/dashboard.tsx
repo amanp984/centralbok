@@ -7,7 +7,7 @@ import {
   MoreHorizontal, ChevronRight, Eye, EyeOff, ArrowUpRight, ArrowDownLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactions } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import logoAsset from "@/assets/cbi-emblem.png.asset.json";
@@ -28,8 +28,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id);
-  const { data: transactions, isLoading: txLoading } = useTransactions(user?.id, 5);
-  const newTxIds = useNewIds(transactions);
+  const { data: computed, isLoading: txLoading } = useTransactionsWithBalances(user?.id);
+  const recentTx = (computed?.items ?? []).slice(-5).reverse();
+  const finalBalance = computed?.finalBalance ?? 0;
+  const newTxIds = useNewIds(recentTx);
   const modal = useBankingModal();
   const [showBalance, setShowBalance] = useState(false);
 
@@ -87,7 +89,7 @@ function Dashboard() {
                 <div className="mt-4 text-xs text-white/80">Available Balance</div>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="text-2xl font-bold">
-                    {accountsLoading ? <Skeleton className="h-8 w-40 bg-white/20" /> : showBalance ? formatINR(primary?.balance ?? 0) : "₹ ●●●●●●●●"}
+                    {accountsLoading || txLoading ? <Skeleton className="h-8 w-40 bg-white/20" /> : showBalance ? formatINR(finalBalance) : "₹ ●●●●●●●●"}
                   </div>
                   <button onClick={() => setShowBalance(!showBalance)} className="flex items-center gap-1 text-xs text-white/90 hover:text-white">
                     {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -159,10 +161,11 @@ function Dashboard() {
             <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] overflow-x-auto">
               <table className="w-full text-[10px] table-fixed">
                 <colgroup>
+                  <col className="w-[16%]" />
                   <col className="w-[18%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[14%]" />
-                  <col className="w-[48%]" />
+                  <col className="w-[13%]" />
+                  <col className="w-[35%]" />
+                  <col className="w-[18%]" />
                 </colgroup>
                 <thead>
                   <tr className="bg-primary text-primary-foreground">
@@ -170,17 +173,18 @@ function Dashboard() {
                     <th className="text-left px-2.5 py-2 font-semibold">Amount</th>
                     <th className="text-left px-2.5 py-2 font-semibold">Type</th>
                     <th className="text-left px-2.5 py-2 font-semibold">Details</th>
+                    <th className="text-right px-2.5 py-2 font-semibold">Balance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {txLoading ? (
                     [...Array(3)].map((_, i) => (
                       <tr key={i} className="border-t border-border">
-                        <td colSpan={4} className="px-2.5 py-2.5"><Skeleton className="h-3 w-full" /></td>
+                        <td colSpan={5} className="px-2.5 py-2.5"><Skeleton className="h-3 w-full" /></td>
                       </tr>
                     ))
-                  ) : transactions && transactions.length > 0 ? (
-                    transactions.map((t) => (
+                  ) : recentTx.length > 0 ? (
+                    recentTx.map((t) => (
                       <tr key={t.id} className={`border-t border-border hover:bg-secondary/50 transition-colors align-top ${newTxIds.has(t.id) ? "row-highlight" : ""}`}>
                         <td className="px-2.5 py-2.5 text-foreground whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</td>
                         <td className="px-2.5 py-2.5 whitespace-nowrap">
@@ -196,15 +200,17 @@ function Dashboard() {
                           <span className="ml-1 text-[9px] font-semibold uppercase text-foreground/80">{t.mode}</span>
                         </td>
                         <td className="px-2.5 py-2.5 text-muted-foreground text-[9px] font-medium tracking-wide uppercase whitespace-normal break-words leading-snug">{t.description ?? "—"}</td>
+                        <td className="px-2.5 py-2.5 whitespace-nowrap text-right font-semibold text-foreground">{formatINR(t.computed_balance)}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr><td colSpan={4} className="px-3 py-6 text-center text-xs text-muted-foreground">No transactions yet. Make a transfer to get started.</td></tr>
+                    <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-muted-foreground">No transactions yet. Make a transfer to get started.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </section>
+
 
           <section>
             <SectionTitle>Shopping</SectionTitle>

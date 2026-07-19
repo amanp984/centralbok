@@ -2,7 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
-import { formatDate, formatINR } from "./banking";
+import { formatDate, computeRunningBalances } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
 
 type ExportMeta = {
@@ -16,6 +16,23 @@ type ExportMeta = {
   fromDate?: string;
   toDate?: string;
 };
+
+/**
+ * Accept any Transaction-like row. If rows already carry a `computed_balance`
+ * we trust it; otherwise we recompute forward from `meta.openingBalance ?? 0`,
+ * ignoring any stored `running_balance` value.
+ */
+type TxLike = Transaction & { computed_balance?: number };
+
+function balanceRows(transactions: readonly TxLike[], openingBalance: number) {
+  // Preserve caller order for display, but compute balances on ascending order.
+  const hasComputed = transactions.every((t) => typeof t.computed_balance === "number");
+  if (hasComputed) return transactions as ReadonlyArray<Required<Pick<TxLike, "computed_balance">> & TxLike>;
+  const { items } = computeRunningBalances(transactions as Transaction[], openingBalance);
+  const byId = new Map(items.map((i) => [i.id, i.computed_balance]));
+  return transactions.map((t) => ({ ...t, computed_balance: byId.get(t.id) ?? 0 }));
+}
+
 
 // jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
 const formatRs = (n: number) =>
@@ -31,36 +48,45 @@ const sanitize = (s: string) =>
     // strip any other non-printable / non-latin1 chars that helvetica can't render
     .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "");
 
-export function exportTransactionsCSV(transactions: Transaction[], filename = "statement.csv") {
+export function exportTransactionsCSV(transactions: TxLike[], filename = "statement.csv", openingBalance = 0) {
+  const balanced = balanceRows(transactions, openingBalance);
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
-  const rows = transactions.map((t) => [
+  const rows = balanced.map((t) => [
     formatDate(t.created_at),
     t.reference,
     (t.description ?? t.beneficiary_name ?? "").replace(/,/g, " "),
     t.mode,
     t.direction.toUpperCase(),
-    t.amount.toFixed(2),
-    (t.running_balance ?? 0).toFixed(2),
+    Number(t.amount).toFixed(2),
+    Number(t.computed_balance).toFixed(2),
   ]);
-  const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  // Closing balance summary row derived from the last (newest) displayed txn
+  // when caller passes newest-first; otherwise from the max of computed values.
+  const closing = balanced.length
+    ? Number(balanced[balanced.length - 1].computed_balance)
+    : openingBalance;
+  const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2)];
+  const csv = [headers, ...rows, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename);
 }
 
-export function exportTransactionsExcel(transactions: Transaction[], filename = "statement.xlsx") {
-  const data = transactions.map((t) => ({
+export function exportTransactionsExcel(transactions: TxLike[], filename = "statement.xlsx", openingBalance = 0) {
+  const balanced = balanceRows(transactions, openingBalance);
+  const data = balanced.map((t) => ({
     Date: formatDate(t.created_at),
     Reference: t.reference,
     Description: t.description ?? t.beneficiary_name ?? "",
     Mode: t.mode,
     Direction: t.direction.toUpperCase(),
-    "Amount (INR)": Number(t.amount.toFixed(2)),
-    "Balance (INR)": Number((t.running_balance ?? 0).toFixed(2)),
+    "Amount (INR)": Number(Number(t.amount).toFixed(2)),
+    "Balance (INR)": Number(Number(t.computed_balance).toFixed(2)),
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Statement");
   XLSX.writeFile(wb, filename);
 }
+
 
 async function loadLogoDataUrl(): Promise<string | null> {
   try {
@@ -77,7 +103,8 @@ async function loadLogoDataUrl(): Promise<string | null> {
   }
 }
 
-export async function exportTransactionsPDF(transactions: Transaction[], meta: ExportMeta, filename = "statement.pdf") {
+export async function exportTransactionsPDF(transactions: TxLike[], meta: ExportMeta, filename = "statement.pdf") {
+  const balanced = balanceRows(transactions, meta.openingBalance ?? 0);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PRIMARY: [number, number, number] = [11, 77, 162];
   const TEXT: [number, number, number] = [31, 42, 68];
@@ -129,14 +156,17 @@ export async function exportTransactionsPDF(transactions: Transaction[], meta: E
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...PRIMARY);
   doc.text("Statement Summary", sx + 3, blockY - 1);
 
-  const totals = transactions.reduce(
+  const totals = balanced.reduce(
     (a, t) => { if (t.direction === "credit") a.cr += Number(t.amount); else a.dr += Number(t.amount); return a; },
     { cr: 0, dr: 0 }
   );
-  const last = transactions[transactions.length - 1];
-  const first = transactions[0];
-  const opening = meta.openingBalance ?? (last ? Number(last.running_balance ?? 0) - (last.direction === "credit" ? Number(last.amount) : -Number(last.amount)) : 0);
-  const closing = meta.closingBalance ?? (first ? Number(first.running_balance ?? 0) : opening);
+  // Balances are ordered by caller (typically newest-first for display).
+  // Find asc first/last by timestamp for opening/closing derivation.
+  const ascBalanced = [...balanced].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const firstAsc = ascBalanced[0];
+  const lastAsc = ascBalanced[ascBalanced.length - 1];
+  const opening = meta.openingBalance ?? (firstAsc ? Number(firstAsc.computed_balance) - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount)) : 0);
+  const closing = meta.closingBalance ?? (lastAsc ? Number(lastAsc.computed_balance) : opening);
 
   doc.setTextColor(...TEXT); doc.setFontSize(9);
   const sRows: Array<[string, string]> = [
@@ -158,13 +188,13 @@ export async function exportTransactionsPDF(transactions: Transaction[], meta: E
   autoTable(doc, {
     startY: tableY,
     head: [["Date", "Narration", "Cheque/Ref No.", "Withdrawals (Rs.)", "Deposits (Rs.)", "Balance (Rs.)"]],
-    body: transactions.map((t) => [
+    body: balanced.map((t) => [
       sanitize(formatDate(t.created_at)),
       sanitize(t.description ?? t.beneficiary_name ?? t.mode),
       sanitize(t.reference),
-      t.direction === "debit" ? formatRs(t.amount) : "-",
-      t.direction === "credit" ? formatRs(t.amount) : "-",
-      formatRs(t.running_balance ?? 0),
+      t.direction === "debit" ? formatRs(Number(t.amount)) : "-",
+      t.direction === "credit" ? formatRs(Number(t.amount)) : "-",
+      formatRs(Number(t.computed_balance)),
     ]),
     styles: { fontSize: 8.5, cellPadding: 2.5, overflow: "linebreak", valign: "middle", lineColor: [210, 218, 230], lineWidth: 0.1 },
     headStyles: { fillColor: [255, 255, 255], textColor: PRIMARY, fontStyle: "bold", lineColor: PRIMARY, lineWidth: 0.3, halign: "center" },
@@ -191,7 +221,7 @@ export async function exportTransactionsPDF(transactions: Transaction[], meta: E
   doc.save(filename);
 }
 
-export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, filename = "receipt.pdf") {
+export function exportTransactionReceiptPDF(t: TxLike, meta: ExportMeta, filename = "receipt.pdf") {
   const doc = new jsPDF();
   doc.setFillColor(11, 77, 162);
   doc.rect(0, 0, 210, 28, "F");
@@ -215,7 +245,7 @@ export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, fi
   if (t.beneficiary_account) row("Beneficiary A/C", sanitize(t.beneficiary_account));
   if (t.beneficiary_ifsc) row("Beneficiary IFSC", sanitize(t.beneficiary_ifsc));
   if (t.description) row("Remarks", sanitize(t.description));
-  row("Running Balance", formatRs(t.running_balance ?? 0));
+  row("Running Balance", formatRs(Number(t.computed_balance ?? t.running_balance ?? 0)));
 
   doc.setFontSize(8); doc.setTextColor(100);
   doc.text("This is a computer-generated receipt and does not require a signature.", 14, doc.internal.pageSize.height - 10);
