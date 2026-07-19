@@ -188,13 +188,13 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   autoTable(doc, {
     startY: tableY,
     head: [["Date", "Narration", "Cheque/Ref No.", "Withdrawals (Rs.)", "Deposits (Rs.)", "Balance (Rs.)"]],
-    body: transactions.map((t) => [
+    body: balanced.map((t) => [
       sanitize(formatDate(t.created_at)),
       sanitize(t.description ?? t.beneficiary_name ?? t.mode),
       sanitize(t.reference),
-      t.direction === "debit" ? formatRs(t.amount) : "-",
-      t.direction === "credit" ? formatRs(t.amount) : "-",
-      formatRs(t.running_balance ?? 0),
+      t.direction === "debit" ? formatRs(Number(t.amount)) : "-",
+      t.direction === "credit" ? formatRs(Number(t.amount)) : "-",
+      formatRs(Number(t.computed_balance)),
     ]),
     styles: { fontSize: 8.5, cellPadding: 2.5, overflow: "linebreak", valign: "middle", lineColor: [210, 218, 230], lineWidth: 0.1 },
     headStyles: { fillColor: [255, 255, 255], textColor: PRIMARY, fontStyle: "bold", lineColor: PRIMARY, lineWidth: 0.3, halign: "center" },
