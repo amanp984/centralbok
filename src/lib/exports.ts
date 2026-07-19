@@ -245,7 +245,7 @@ export function exportTransactionReceiptPDF(t: TxLike, meta: ExportMeta, filenam
   if (t.beneficiary_account) row("Beneficiary A/C", sanitize(t.beneficiary_account));
   if (t.beneficiary_ifsc) row("Beneficiary IFSC", sanitize(t.beneficiary_ifsc));
   if (t.description) row("Remarks", sanitize(t.description));
-  row("Running Balance", formatRs(t.running_balance ?? 0));
+  row("Running Balance", formatRs(Number(t.computed_balance ?? t.running_balance ?? 0)));
 
   doc.setFontSize(8); doc.setTextColor(100);
   doc.text("This is a computer-generated receipt and does not require a signature.", 14, doc.internal.pageSize.height - 10);
