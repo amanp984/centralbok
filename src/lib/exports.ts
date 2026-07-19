@@ -221,7 +221,7 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.save(filename);
 }
 
-export function exportTransactionReceiptPDF(t: Transaction, meta: ExportMeta, filename = "receipt.pdf") {
+export function exportTransactionReceiptPDF(t: TxLike, meta: ExportMeta, filename = "receipt.pdf") {
   const doc = new jsPDF();
   doc.setFillColor(11, 77, 162);
   doc.rect(0, 0, 210, 28, "F");
