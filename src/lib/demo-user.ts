@@ -1,36 +1,36 @@
 // Local-only demo login. No Supabase Auth.
 export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
-export const DEMO_USERNAME = "RAJ34588764";
-export const DEMO_PASSWORD = "RAJ@19080";
-export const DEMO_TRANSACTION_PASSWORD = "RAJ@19080";
-export const DEMO_DISPLAY_NAME = "RAJ TRADERS";
-export const DEMO_FULL_NAME = "RAJ TRADERS";
-export const DEMO_EMAIL = "sraj715529@gmail.com";
+export const DEMO_USERNAME = "Hkenterprises7101";
+export const DEMO_PASSWORD = "HK@1990";
+export const DEMO_TRANSACTION_PASSWORD = "HK@1990";
+export const DEMO_DISPLAY_NAME = "HK ENTERPRISES";
+export const DEMO_FULL_NAME = "HK ENTERPRISES";
+export const DEMO_EMAIL = "harsh8916079@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "431778161348",
-  customerId: "CBI427881342",
-  cif: "CBI427881342",
-  pan: "XXXXX5978D",
-  mobile: "+918097314872",
+  accountNumber: "31475488146",
+  customerId: "68472286147",
+  cif: "68472286147",
+  pan: "XXXXX6022Q",
+  mobile: "+9198XXXXXX89",
   email: DEMO_EMAIL,
-  address: "Jaipur Naka",
-  city: "Jaipur",
-  state: "Rajasthan",
-  pinCode: "302012",
-  branch: "JAIPUR NAKA",
-  branchCode: "0280478",
-  ifsc: "CBIN0280478",
+  address: "B-204 Sector 4, Andheri Residency Road Number 4",
+  city: "Mumbai City",
+  state: "Maharashtra",
+  pinCode: "400078",
+  branch: "Andheri East",
+  branchCode: "028766",
+  ifsc: "CBIN028766",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
   kycReference: "KYC-CBI-20240514-998271",
   kycCompletionDate: "2024-05-14",
-  micr: "302016478",
+  micr: "400078766",
 } as const;
 
 // Per-mode daily limits (₹).
