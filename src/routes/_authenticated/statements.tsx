@@ -189,7 +189,7 @@ function StatementsPage() {
           {isLoading ? (
             <div className="p-6 space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">No transactions for the selected period.</div>
+            <div className="p-12 text-center text-muted-foreground">No transactions found.</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
