@@ -75,18 +75,6 @@ function StatementsPage() {
     { credit: 0, debit: 0 }
   );
 
-  // Opening balance for the selected range = computed balance right BEFORE
-  // the earliest in-range transaction (in ascending order). Closing = last
-  // in-range balance. Both derived from the shared computation.
-  const ascInRange = useMemo(() => [...inRange].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  ), [inRange]);
-  const firstAsc = ascInRange[0];
-  const lastAsc = ascInRange[ascInRange.length - 1];
-  const opening = firstAsc
-    ? firstAsc.computed_balance - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount))
-    : (computed?.finalBalance ?? 0);
-  const closing = lastAsc ? lastAsc.computed_balance : opening;
 
   // Downloads: default to the current month when the user hasn't chosen a
   // date range. The website table always shows every transaction.
