@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,49 +20,21 @@ export const Route = createFileRoute("/_authenticated/statements")({
 });
 
 function today() { return new Date().toISOString().slice(0,10); }
+function firstOfMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+}
 
 function StatementsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
-  const [from, setFrom] = useState(today());
-  const [to, setTo] = useState(today());
+  // Empty by default → show ALL transactions. Filters only apply once the
+  // user picks a value.
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [direction, setDirection] = useState<"all" | "credit" | "debit">("all");
   const [mode, setMode] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const userAdjustedRef = useRef(false);
-
-  // Auto-adjust default date range to the most recent transaction date if
-  // "today" has no transactions. Runs once on mount; skipped if the user
-  // has already changed the from/to inputs.
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    (async () => {
-      const t = today();
-      const { data: todays } = await supabase
-        .from("transactions")
-        .select("id")
-        .gte("created_at", `${t}T00:00:00`)
-        .lte("created_at", `${t}T23:59:59.999`)
-        .limit(1);
-      if (cancelled || userAdjustedRef.current) return;
-      if (todays && todays.length > 0) return;
-      const { data: latest } = await supabase
-        .from("transactions")
-        .select("created_at")
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (cancelled || userAdjustedRef.current) return;
-      const first = latest?.[0]?.created_at;
-      if (first) {
-        const d = String(first).slice(0, 10);
-        setFrom(d);
-        setTo(d);
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
 
   const { data: computed, isLoading } = useTransactionsWithBalances(user?.id);
   const allItems = useMemo(() => computed?.items ?? [], [computed]);
@@ -72,8 +43,9 @@ function StatementsPage() {
   // row are the client-computed running balance across ALL transactions, so
   // filtering never invalidates them.
   const inRange = useMemo(() => {
-    const start = new Date(from + "T00:00:00").getTime();
-    const end = new Date(to + "T23:59:59.999").getTime();
+    if (!from && !to) return allItems;
+    const start = from ? new Date(from + "T00:00:00").getTime() : -Infinity;
+    const end = to ? new Date(to + "T23:59:59.999").getTime() : Infinity;
     return allItems.filter((t) => {
       const ts = new Date(t.created_at).getTime();
       return ts >= start && ts <= end;
@@ -103,18 +75,38 @@ function StatementsPage() {
     { credit: 0, debit: 0 }
   );
 
-  // Opening balance for the selected range = computed balance right BEFORE
-  // the earliest in-range transaction (in ascending order). Closing = last
-  // in-range balance. Both derived from the shared computation.
-  const ascInRange = useMemo(() => [...inRange].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  ), [inRange]);
-  const firstAsc = ascInRange[0];
-  const lastAsc = ascInRange[ascInRange.length - 1];
-  const opening = firstAsc
-    ? firstAsc.computed_balance - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount))
-    : (computed?.finalBalance ?? 0);
-  const closing = lastAsc ? lastAsc.computed_balance : opening;
+
+  // Downloads: default to the current month when the user hasn't chosen a
+  // date range. The website table always shows every transaction.
+  const exportRange = useMemo(() => {
+    const f = from || firstOfMonth();
+    const t = to || today();
+    return { from: f, to: t };
+  }, [from, to]);
+
+  const exportItems = useMemo(() => {
+    const start = new Date(exportRange.from + "T00:00:00").getTime();
+    const end = new Date(exportRange.to + "T23:59:59.999").getTime();
+    const q = search.toLowerCase();
+    const rows = allItems.filter((t) => {
+      const ts = new Date(t.created_at).getTime();
+      if (ts < start || ts > end) return false;
+      if (direction !== "all" && t.direction !== direction) return false;
+      if (mode !== "all" && t.mode !== mode) return false;
+      if (q && !`${t.reference} ${t.description ?? ""} ${t.beneficiary_name ?? ""}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    return [...rows].reverse();
+  }, [allItems, exportRange, direction, mode, search]);
+
+  const expOpening = (() => {
+    const asc = [...exportItems].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const first = asc[0];
+    return first
+      ? first.computed_balance - (first.direction === "credit" ? Number(first.amount) : -Number(first.amount))
+      : (computed?.finalBalance ?? 0);
+  })();
+  const expClosing = exportItems[0]?.computed_balance ?? expOpening;
 
   const meta = {
     customerName: DEMO_PROFILE.fullName,
@@ -122,10 +114,10 @@ function StatementsPage() {
     ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
     cif: DEMO_PROFILE.cif,
     branch: DEMO_PROFILE.branch,
-    openingBalance: opening,
-    closingBalance: closing,
-    fromDate: from,
-    toDate: to,
+    openingBalance: expOpening,
+    closingBalance: expClosing,
+    fromDate: exportRange.from,
+    toDate: exportRange.to,
   };
 
   return (
@@ -133,8 +125,8 @@ function StatementsPage() {
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => { userAdjustedRef.current = true; setFrom(e.target.value); }} /></div>
-            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => { userAdjustedRef.current = true; setTo(e.target.value); }} /></div>
+            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
             <div>
               <Label>Direction</Label>
               <Select value={direction} onValueChange={(v) => setDirection(v as typeof direction)}>
@@ -164,14 +156,17 @@ function StatementsPage() {
               </div>
             </div>
           </div>
+          <p className="text-[11px] text-muted-foreground mt-3">
+            Downloads default to the current month ({exportRange.from} → {exportRange.to}). Pick a custom From/To to change the export range. The list below always shows every transaction.
+          </p>
           <div className="flex flex-wrap gap-2 mt-4">
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsPDF(filtered, meta, `statement-${from}-${to}.pdf`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
               <FileText className="w-4 h-4 mr-1" /> PDF
             </Button>
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsExcel(filtered, `statement-${from}-${to}.xlsx`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsExcel(exportItems, `statement-${exportRange.from}-${exportRange.to}.xlsx`)}>
               <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
             </Button>
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsCSV(filtered, `statement-${from}-${to}.csv`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsCSV(exportItems, `statement-${exportRange.from}-${exportRange.to}.csv`)}>
               <Download className="w-4 h-4 mr-1" /> CSV
             </Button>
             <Button variant="outline" onClick={() => window.print()}>Print</Button>
@@ -194,7 +189,7 @@ function StatementsPage() {
           {isLoading ? (
             <div className="p-6 space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">No transactions for the selected period.</div>
+            <div className="p-12 text-center text-muted-foreground">No transactions found.</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
