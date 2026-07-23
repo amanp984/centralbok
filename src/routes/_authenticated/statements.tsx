@@ -89,16 +89,48 @@ function StatementsPage() {
     : (computed?.finalBalance ?? 0);
   const closing = lastAsc ? lastAsc.computed_balance : opening;
 
+  // Downloads: default to the current month when the user hasn't chosen a
+  // date range. The website table always shows every transaction.
+  const exportRange = useMemo(() => {
+    const f = from || firstOfMonth();
+    const t = to || today();
+    return { from: f, to: t };
+  }, [from, to]);
+
+  const exportItems = useMemo(() => {
+    const start = new Date(exportRange.from + "T00:00:00").getTime();
+    const end = new Date(exportRange.to + "T23:59:59.999").getTime();
+    const q = search.toLowerCase();
+    const rows = allItems.filter((t) => {
+      const ts = new Date(t.created_at).getTime();
+      if (ts < start || ts > end) return false;
+      if (direction !== "all" && t.direction !== direction) return false;
+      if (mode !== "all" && t.mode !== mode) return false;
+      if (q && !`${t.reference} ${t.description ?? ""} ${t.beneficiary_name ?? ""}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    return [...rows].reverse();
+  }, [allItems, exportRange, direction, mode, search]);
+
+  const expOpening = (() => {
+    const asc = [...exportItems].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const first = asc[0];
+    return first
+      ? first.computed_balance - (first.direction === "credit" ? Number(first.amount) : -Number(first.amount))
+      : (computed?.finalBalance ?? 0);
+  })();
+  const expClosing = exportItems[0]?.computed_balance ?? expOpening;
+
   const meta = {
     customerName: DEMO_PROFILE.fullName,
     accountNumber: primary?.account_number ?? "",
     ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
     cif: DEMO_PROFILE.cif,
     branch: DEMO_PROFILE.branch,
-    openingBalance: opening,
-    closingBalance: closing,
-    fromDate: from,
-    toDate: to,
+    openingBalance: expOpening,
+    closingBalance: expClosing,
+    fromDate: exportRange.from,
+    toDate: exportRange.to,
   };
 
   return (
@@ -106,8 +138,8 @@ function StatementsPage() {
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border shadow-[var(--shadow-card)] p-5">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => { userAdjustedRef.current = true; setFrom(e.target.value); }} /></div>
-            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => { userAdjustedRef.current = true; setTo(e.target.value); }} /></div>
+            <div><Label htmlFor="from">From</Label><Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+            <div><Label htmlFor="to">To</Label><Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
             <div>
               <Label>Direction</Label>
               <Select value={direction} onValueChange={(v) => setDirection(v as typeof direction)}>
@@ -137,14 +169,17 @@ function StatementsPage() {
               </div>
             </div>
           </div>
+          <p className="text-[11px] text-muted-foreground mt-3">
+            Downloads default to the current month ({exportRange.from} → {exportRange.to}). Pick a custom From/To to change the export range. The list below always shows every transaction.
+          </p>
           <div className="flex flex-wrap gap-2 mt-4">
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsPDF(filtered, meta, `statement-${from}-${to}.pdf`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
               <FileText className="w-4 h-4 mr-1" /> PDF
             </Button>
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsExcel(filtered, `statement-${from}-${to}.xlsx`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsExcel(exportItems, `statement-${exportRange.from}-${exportRange.to}.xlsx`)}>
               <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
             </Button>
-            <Button variant="outline" disabled={!filtered.length} onClick={() => exportTransactionsCSV(filtered, `statement-${from}-${to}.csv`)}>
+            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsCSV(exportItems, `statement-${exportRange.from}-${exportRange.to}.csv`)}>
               <Download className="w-4 h-4 mr-1" /> CSV
             </Button>
             <Button variant="outline" onClick={() => window.print()}>Print</Button>
