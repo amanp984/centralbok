@@ -21,49 +21,21 @@ export const Route = createFileRoute("/_authenticated/statements")({
 });
 
 function today() { return new Date().toISOString().slice(0,10); }
+function firstOfMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+}
 
 function StatementsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
-  const [from, setFrom] = useState(today());
-  const [to, setTo] = useState(today());
+  // Empty by default → show ALL transactions. Filters only apply once the
+  // user picks a value.
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [direction, setDirection] = useState<"all" | "credit" | "debit">("all");
   const [mode, setMode] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const userAdjustedRef = useRef(false);
-
-  // Auto-adjust default date range to the most recent transaction date if
-  // "today" has no transactions. Runs once on mount; skipped if the user
-  // has already changed the from/to inputs.
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    (async () => {
-      const t = today();
-      const { data: todays } = await supabase
-        .from("transactions")
-        .select("id")
-        .gte("created_at", `${t}T00:00:00`)
-        .lte("created_at", `${t}T23:59:59.999`)
-        .limit(1);
-      if (cancelled || userAdjustedRef.current) return;
-      if (todays && todays.length > 0) return;
-      const { data: latest } = await supabase
-        .from("transactions")
-        .select("created_at")
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (cancelled || userAdjustedRef.current) return;
-      const first = latest?.[0]?.created_at;
-      if (first) {
-        const d = String(first).slice(0, 10);
-        setFrom(d);
-        setTo(d);
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
 
   const { data: computed, isLoading } = useTransactionsWithBalances(user?.id);
   const allItems = useMemo(() => computed?.items ?? [], [computed]);
@@ -72,8 +44,9 @@ function StatementsPage() {
   // row are the client-computed running balance across ALL transactions, so
   // filtering never invalidates them.
   const inRange = useMemo(() => {
-    const start = new Date(from + "T00:00:00").getTime();
-    const end = new Date(to + "T23:59:59.999").getTime();
+    if (!from && !to) return allItems;
+    const start = from ? new Date(from + "T00:00:00").getTime() : -Infinity;
+    const end = to ? new Date(to + "T23:59:59.999").getTime() : Infinity;
     return allItems.filter((t) => {
       const ts = new Date(t.created_at).getTime();
       return ts >= start && ts <= end;
