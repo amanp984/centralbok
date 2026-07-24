@@ -85,6 +85,8 @@ const sanitize = (s: string) =>
 
 export function exportTransactionsCSV(transactions: TxLike[], filename = "statement.csv", openingBalance = 0) {
   const balanced = balanceRows(transactions, openingBalance);
+  const { opening, closing } = windowBounds(balanced);
+  assertBalanceIntegrity(balanced, opening, closing);
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
   const rows = balanced.map((t) => [
     formatDate(t.created_at),
@@ -95,18 +97,16 @@ export function exportTransactionsCSV(transactions: TxLike[], filename = "statem
     Number(t.amount).toFixed(2),
     Number(t.computed_balance).toFixed(2),
   ]);
-  // Closing balance summary row derived from the last (newest) displayed txn
-  // when caller passes newest-first; otherwise from the max of computed values.
-  const closing = balanced.length
-    ? Number(balanced[balanced.length - 1].computed_balance)
-    : openingBalance;
+  const summaryOpen = ["", "", "", "", "OPENING BALANCE", "", opening.toFixed(2)];
   const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2)];
-  const csv = [headers, ...rows, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const csv = [headers, ...rows, summaryOpen, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename);
 }
 
 export function exportTransactionsExcel(transactions: TxLike[], filename = "statement.xlsx", openingBalance = 0) {
   const balanced = balanceRows(transactions, openingBalance);
+  const { opening, closing } = windowBounds(balanced);
+  assertBalanceIntegrity(balanced, opening, closing);
   const data = balanced.map((t) => ({
     Date: formatDate(t.created_at),
     Reference: t.reference,
