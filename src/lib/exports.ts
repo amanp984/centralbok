@@ -33,6 +33,41 @@ function balanceRows(transactions: readonly TxLike[], openingBalance: number) {
   return transactions.map((t) => ({ ...t, computed_balance: byId.get(t.id) ?? 0 }));
 }
 
+/**
+ * Banking-grade invariant: opening + credits − debits === closing.
+ * Throws (blocking any export) when the math does not reconcile.
+ */
+function assertBalanceIntegrity(rows: readonly TxLike[], opening: number, closing: number) {
+  const totals = rows.reduce(
+    (a, t) => {
+      const amt = Number(t.amount) || 0;
+      if (t.direction === "credit") a.cr += amt; else a.dr += amt;
+      return a;
+    },
+    { cr: 0, dr: 0 },
+  );
+  const expected = Math.round((opening + totals.cr - totals.dr) * 100) / 100;
+  const actual = Math.round(closing * 100) / 100;
+  if (Math.abs(expected - actual) > 0.01) {
+    const msg = `Balance mismatch — opening ${opening.toFixed(2)} + credits ${totals.cr.toFixed(2)} − debits ${totals.dr.toFixed(2)} = ${expected.toFixed(2)}, but closing is ${actual.toFixed(2)}`;
+    console.error("[export]", msg, { rows: rows.length });
+    throw new Error(msg);
+  }
+  return totals;
+}
+
+/** Derive opening/closing balances from computed rows (ascending by date). */
+function windowBounds(rows: readonly (TxLike & { computed_balance: number })[]) {
+  const asc = [...rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  if (!asc.length) return { opening: 0, closing: 0 };
+  const first = asc[0];
+  const last = asc[asc.length - 1];
+  const signed = first.direction === "credit" ? Number(first.amount) : -Number(first.amount);
+  const opening = Math.round((Number(first.computed_balance) - signed) * 100) / 100;
+  const closing = Math.round(Number(last.computed_balance) * 100) / 100;
+  return { opening, closing };
+}
+
 
 // jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
 const formatRs = (n: number) =>
@@ -50,6 +85,8 @@ const sanitize = (s: string) =>
 
 export function exportTransactionsCSV(transactions: TxLike[], filename = "statement.csv", openingBalance = 0) {
   const balanced = balanceRows(transactions, openingBalance);
+  const { opening, closing } = windowBounds(balanced);
+  assertBalanceIntegrity(balanced, opening, closing);
   const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
   const rows = balanced.map((t) => [
     formatDate(t.created_at),
@@ -60,18 +97,16 @@ export function exportTransactionsCSV(transactions: TxLike[], filename = "statem
     Number(t.amount).toFixed(2),
     Number(t.computed_balance).toFixed(2),
   ]);
-  // Closing balance summary row derived from the last (newest) displayed txn
-  // when caller passes newest-first; otherwise from the max of computed values.
-  const closing = balanced.length
-    ? Number(balanced[balanced.length - 1].computed_balance)
-    : openingBalance;
+  const summaryOpen = ["", "", "", "", "OPENING BALANCE", "", opening.toFixed(2)];
   const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2)];
-  const csv = [headers, ...rows, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const csv = [headers, ...rows, summaryOpen, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename);
 }
 
 export function exportTransactionsExcel(transactions: TxLike[], filename = "statement.xlsx", openingBalance = 0) {
   const balanced = balanceRows(transactions, openingBalance);
+  const { opening, closing } = windowBounds(balanced);
+  assertBalanceIntegrity(balanced, opening, closing);
   const data = balanced.map((t) => ({
     Date: formatDate(t.created_at),
     Reference: t.reference,
@@ -156,17 +191,11 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...PRIMARY);
   doc.text("Statement Summary", sx + 3, blockY - 1);
 
-  const totals = balanced.reduce(
-    (a, t) => { if (t.direction === "credit") a.cr += Number(t.amount); else a.dr += Number(t.amount); return a; },
-    { cr: 0, dr: 0 }
-  );
-  // Balances are ordered by caller (typically newest-first for display).
-  // Find asc first/last by timestamp for opening/closing derivation.
-  const ascBalanced = [...balanced].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  const firstAsc = ascBalanced[0];
-  const lastAsc = ascBalanced[ascBalanced.length - 1];
-  const opening = meta.openingBalance ?? (firstAsc ? Number(firstAsc.computed_balance) - (firstAsc.direction === "credit" ? Number(firstAsc.amount) : -Number(firstAsc.amount)) : 0);
-  const closing = meta.closingBalance ?? (lastAsc ? Number(lastAsc.computed_balance) : opening);
+  // Derive opening/closing strictly from the same computed running balance
+  // used everywhere else, then validate the accounting invariant.
+  const { opening, closing } = windowBounds(balanced);
+  const totals = assertBalanceIntegrity(balanced, opening, closing);
+
 
   doc.setTextColor(...TEXT); doc.setFontSize(9);
   const sRows: Array<[string, string]> = [
