@@ -33,6 +33,29 @@ function balanceRows(transactions: readonly TxLike[], openingBalance: number) {
   return transactions.map((t) => ({ ...t, computed_balance: byId.get(t.id) ?? 0 }));
 }
 
+/**
+ * Banking-grade invariant: opening + credits − debits === closing.
+ * Throws (blocking any export) when the math does not reconcile.
+ */
+function assertBalanceIntegrity(rows: readonly TxLike[], opening: number, closing: number) {
+  const totals = rows.reduce(
+    (a, t) => {
+      const amt = Number(t.amount) || 0;
+      if (t.direction === "credit") a.cr += amt; else a.dr += amt;
+      return a;
+    },
+    { cr: 0, dr: 0 },
+  );
+  const expected = Math.round((opening + totals.cr - totals.dr) * 100) / 100;
+  const actual = Math.round(closing * 100) / 100;
+  if (Math.abs(expected - actual) > 0.01) {
+    const msg = `Balance mismatch — opening ${opening.toFixed(2)} + credits ${totals.cr.toFixed(2)} − debits ${totals.dr.toFixed(2)} = ${expected.toFixed(2)}, but closing is ${actual.toFixed(2)}`;
+    console.error("[export]", msg, { rows: rows.length });
+    throw new Error(msg);
+  }
+  return totals;
+}
+
 
 // jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
 const formatRs = (n: number) =>
