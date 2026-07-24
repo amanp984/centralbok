@@ -56,6 +56,18 @@ function assertBalanceIntegrity(rows: readonly TxLike[], opening: number, closin
   return totals;
 }
 
+/** Derive opening/closing balances from computed rows (ascending by date). */
+function windowBounds(rows: readonly (TxLike & { computed_balance: number })[]) {
+  const asc = [...rows].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  if (!asc.length) return { opening: 0, closing: 0 };
+  const first = asc[0];
+  const last = asc[asc.length - 1];
+  const signed = first.direction === "credit" ? Number(first.amount) : -Number(first.amount);
+  const opening = Math.round((Number(first.computed_balance) - signed) * 100) / 100;
+  const closing = Math.round(Number(last.computed_balance) * 100) / 100;
+  return { opening, closing };
+}
+
 
 // jsPDF's built-in helvetica can't render ₹ or other unicode glyphs; use ASCII "Rs."
 const formatRs = (n: number) =>
