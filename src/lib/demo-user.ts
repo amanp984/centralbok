@@ -1,35 +1,38 @@
 // Local-only demo login. No Supabase Auth.
 export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
-export const DEMO_USERNAME = "Hkenterprises7101";
-export const DEMO_PASSWORD = "HK@1990";
-export const DEMO_TRANSACTION_PASSWORD = "HK@1990";
-export const DEMO_DISPLAY_NAME = "HK ENTERPRISES";
-export const DEMO_FULL_NAME = "HK ENTERPRISES";
-export const DEMO_EMAIL = "harsh8916079@gmail.com";
+export const DEMO_USERNAME = "minatravel64788";
+export const DEMO_PASSWORD = "Mina@7040";
+export const DEMO_TRANSACTION_PASSWORD = "Mina@7040";
+export const DEMO_DISPLAY_NAME = "MINA TRAVEL";
+export const DEMO_FULL_NAME = "MINA TRAVEL";
+export const DEMO_EMAIL = "MINATRAVEL16079@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "31475488146",
-  customerId: "68472286147",
-  cif: "68472286147",
+  accountNumber: "47331761489",
+  customerId: "8761447824",
+  cif: "8761447824",
   pan: "XXXXX6022Q",
-  mobile: "+9198XXXXXX89",
+  mobile: "+91 98XXXXXX87",
   email: DEMO_EMAIL,
-  address: "B-204 Sector 4, Andheri Residency Road Number 4",
+  address: "B-204, Sector 4, Andheri Residency Road No. 4",
   city: "Mumbai City",
   state: "Maharashtra",
   pinCode: "400078",
+  country: "India",
   branch: "Andheri East",
   branchCode: "028766",
   ifsc: "CBIN028766",
+  bankName: "Central Bank of India",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
   kycReference: "KYC-CBI-20240514-998271",
   kycCompletionDate: "2024-05-14",
+  nomineeStatus: "Registered",
   micr: "400078766",
 } as const;
 
