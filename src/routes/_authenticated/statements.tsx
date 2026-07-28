@@ -146,7 +146,7 @@ function StatementsPage() {
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground mt-3">
-            Downloads default to the current month ({exportRange.from} → {exportRange.to}). Pick a custom From/To to change the export range. The list below always shows every transaction.
+            Downloads contain exactly the {exportItems.length} transaction{exportItems.length === 1 ? "" : "s"} shown below ({exportRange.from} → {exportRange.to}).
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
