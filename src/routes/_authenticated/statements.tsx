@@ -76,28 +76,17 @@ function StatementsPage() {
   );
 
 
-  // Downloads: default to the current month when the user hasn't chosen a
-  // date range. The website table always shows every transaction.
-  const exportRange = useMemo(() => {
-    const f = from || firstOfMonth();
-    const t = to || today();
-    return { from: f, to: t };
-  }, [from, to]);
+  // Downloads use EXACTLY the dataset rendered on screen — same rows, same
+  // order, same computed balances. No separate query, no extra date window.
+  const exportItems = filtered;
 
-  const exportItems = useMemo(() => {
-    const start = new Date(exportRange.from + "T00:00:00").getTime();
-    const end = new Date(exportRange.to + "T23:59:59.999").getTime();
-    const q = search.toLowerCase();
-    const rows = allItems.filter((t) => {
-      const ts = new Date(t.created_at).getTime();
-      if (ts < start || ts > end) return false;
-      if (direction !== "all" && t.direction !== direction) return false;
-      if (mode !== "all" && t.mode !== mode) return false;
-      if (q && !`${t.reference} ${t.description ?? ""} ${t.beneficiary_name ?? ""}`.toLowerCase().includes(q)) return false;
-      return true;
-    });
-    return [...rows].reverse();
-  }, [allItems, exportRange, direction, mode, search]);
+  // Period shown on the statement header is derived from the exported rows.
+  const exportRange = useMemo(() => {
+    if (!exportItems.length) return { from: from || firstOfMonth(), to: to || today() };
+    const times = exportItems.map((t) => new Date(t.created_at).getTime());
+    const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+    return { from: iso(Math.min(...times)), to: iso(Math.max(...times)) };
+  }, [exportItems, from, to]);
 
   const expOpening = (() => {
     const asc = [...exportItems].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -157,7 +146,7 @@ function StatementsPage() {
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground mt-3">
-            Downloads default to the current month ({exportRange.from} → {exportRange.to}). Pick a custom From/To to change the export range. The list below always shows every transaction.
+            Downloads contain exactly the {exportItems.length} transaction{exportItems.length === 1 ? "" : "s"} shown below ({exportRange.from} → {exportRange.to}).
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
