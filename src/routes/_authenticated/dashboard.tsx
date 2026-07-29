@@ -1,3 +1,4 @@
+import { maskAccount } from "@/lib/banking";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
@@ -241,10 +242,6 @@ function Dashboard() {
   );
 }
 
-function maskAccount(num: string) {
-  const last4 = num.slice(-4);
-  return `XXXX XXXX ${last4}`;
-}
 function formatINR(n: number) {
   return `₹ ${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
