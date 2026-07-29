@@ -1,39 +1,39 @@
 // Local-only demo login. No Supabase Auth.
 export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
-export const DEMO_USERNAME = "jugniphone58667";
-export const DEMO_PASSWORD = "Jugniphone@2020";
-export const DEMO_TRANSACTION_PASSWORD = "Jugniphone@2020";
-export const DEMO_DISPLAY_NAME = "Jugni Phone";
-export const DEMO_FULL_NAME = "Jugni Phone";
-export const DEMO_EMAIL = "jugniphone58667@gmail.com";
+export const DEMO_USERNAME = "DineshFruit7196";
+export const DEMO_PASSWORD = "Fruit@2017";
+export const DEMO_TRANSACTION_PASSWORD = "Fruit@2017";
+export const DEMO_DISPLAY_NAME = "DINESH FRUIT";
+export const DEMO_FULL_NAME = "DINESH FRUIT";
+export const DEMO_EMAIL = "dineshlalyadav90759@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
 // Static demo banking profile (single source of truth across the UI).
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "80742366478",
-  customerId: "7863664782",
-  cif: "7863664782",
-  pan: "XXXXX7863K",
-  mobile: "+91 63XXXXXX89",
+  accountNumber: "6478143786",
+  customerId: "87661437218",
+  cif: "87661437218",
+  pan: "XXXXX9976K",
+  mobile: "+91 80XXXXXX47",
   email: DEMO_EMAIL,
-  address: "B-204, Sector 4, Andheri Residency Road No. 4",
+  address: "Paliyat Nagar, Road No. 4",
   city: "Mumbai City",
   state: "Maharashtra",
   pinCode: "400078",
   country: "India",
-  branch: "Andheri East",
-  branchCode: "027863",
-  ifsc: "CBIN027863",
+  branch: "PALIYAT NAGAR",
+  branchCode: "029976",
+  ifsc: "CBIN029976",
   bankName: "Central Bank of India",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
-  kycReference: "KYC-CBI-20240514-778632",
+  kycReference: "KYC-CBI-20240514-299761",
   kycCompletionDate: "2024-05-14",
   nomineeStatus: "Registered",
-  micr: "400027863",
+  micr: "400029976",
 } as const;
 
 // Per-mode daily limits (₹).
