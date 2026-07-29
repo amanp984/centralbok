@@ -122,24 +122,38 @@ export function parseSms(input: string): ParsedSms | null {
   );
   const availableBalance = balMatch ? num(balMatch[1].replace(/\s/g, "")) : undefined;
 
-  // Counterparty
-  let counterparty = "";
-  let counterpartyAccount: string | undefined;
+  // Counterparty — collect every "from/to/by <Name>" candidate, then pick the
+  // one that matches the transaction direction, skipping self-references.
+  const SELF = /^(your|my|self|the|a|an|account|a\/c|ac)$/i;
+  type Cand = { prep: string; name: string; acct?: string };
+  const cands: Cand[] = [];
 
-  const partyAcct = sms.match(
-    /(?:from|to|by)\s+([A-Za-z][A-Za-z .&'-]{1,60}?)\s+a\/?c(?:count)?\s*(?:no\.?)?\s*[:#]?\s*(x*\d{3,6})/i,
-  );
-  if (partyAcct) {
-    counterparty = partyAcct[1];
-    counterpartyAccount = partyAcct[2].toUpperCase();
-  } else {
-    const party = sms.match(
-      /(?:from|to|by)\s+([A-Za-z][A-Za-z .&'-]{1,60}?)(?=\s*(?:\.|,|;|-|\bon\b|\bUTR\b|\bRRN\b|\bRef\b|\bTxn\b|\bUPI\b|\bIMPS\b|\bRTGS\b|\bNEFT\b|\bAvl\b|\bAvbl\b|\bBal\b|$))/i,
-    );
-    if (party) counterparty = party[1];
+  const acctRe =
+    /\b(from|to|by)\s+([A-Za-z][A-Za-z .&'-]{1,60}?)\s+a\/?c(?:count)?\s*(?:no\.?)?\s*[:#]?\s*(x*\d{3,6})/gi;
+  for (const m of sms.matchAll(acctRe)) {
+    cands.push({ prep: m[1].toLowerCase(), name: m[2], acct: m[3].toUpperCase() });
+  }
+  const plainRe =
+    /\b(from|to|by)\s+([A-Za-z][A-Za-z .&'-]{1,60}?)(?=\s*(?:\.|,|;|-|\bon\b|\bvia\b|\bUTR\b|\bRRN\b|\bRef\b|\bTxn\b|\bUPI\b|\bIMPS\b|\bRTGS\b|\bNEFT\b|\bAvl\b|\bAvbl\b|\bBal\b|$))/gi;
+  for (const m of sms.matchAll(plainRe)) {
+    cands.push({ prep: m[1].toLowerCase(), name: m[2] });
   }
 
-  counterparty = counterparty.replace(/\s+/g, " ").trim().toUpperCase();
+  const clean = cands
+    .map((c) => ({ ...c, name: c.name.replace(/\s+/g, " ").trim() }))
+    .filter((c) => !SELF.test(c.name) && !/^a\/?c$/i.test(c.name));
+
+  const wanted = direction === "CREDIT" ? "from" : "to";
+  const picked =
+    clean.find((c) => c.prep === wanted && c.acct) ??
+    clean.find((c) => c.prep === wanted) ??
+    clean.find((c) => c.acct) ??
+    clean[0];
+
+  let counterparty = picked ? picked.name.toUpperCase() : "";
+  let counterpartyAccount = picked?.acct;
+  void counterpartyAccount;
+
 
   return {
     direction,
