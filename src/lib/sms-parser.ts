@@ -150,9 +150,8 @@ export function parseSms(input: string): ParsedSms | null {
     clean.find((c) => c.acct) ??
     clean[0];
 
-  let counterparty = picked ? picked.name.toUpperCase() : "";
-  let counterpartyAccount = picked?.acct;
-  void counterpartyAccount;
+  const counterparty = picked ? picked.name.toUpperCase() : "";
+  const counterpartyAccount = picked?.acct;
 
 
   return {
