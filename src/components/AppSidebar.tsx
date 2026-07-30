@@ -40,6 +40,7 @@ export function AppSidebar({
     qc.clear();
     setOtpVerified(false);
     setLocallyAuthenticated(false);
+    await signOutBankSession();
     navigate({ to: "/", replace: true });
   };
 
