@@ -1,5 +1,6 @@
-// Local-only demo login. No Supabase Auth.
-export const DEMO_USER_ID = "00000000-0000-0000-0000-0000000000d1";
+// Demo banking profile. The UI login gate is backed by a real auth account;
+// this UUID is that account's user id.
+export const DEMO_USER_ID = "80634f33-ac71-4533-b729-12f0938046e8";
 export const DEMO_USERNAME = "DineshFruit7196";
 export const DEMO_PASSWORD = "Fruit@2017";
 export const DEMO_TRANSACTION_PASSWORD = "Fruit@2017";

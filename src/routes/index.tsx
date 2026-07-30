@@ -9,6 +9,7 @@ import {
   isLocallyAuthenticated,
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
+import { signInBankSession } from "@/lib/bank-session";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "@/components/AppLoader";
 import cbiOfficialLogo from "@/assets/cbi-official-logo.png.asset.json";
@@ -41,7 +42,7 @@ function LoginPage() {
     }
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (captchaInput.trim() !== captcha) {
       toast.error("Captcha doesn't match. Please try again.");
@@ -51,6 +52,12 @@ function LoginPage() {
     }
     if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
       setLoading(true);
+      const ok = await signInBankSession();
+      if (!ok) {
+        setLoading(false);
+        toast.error("Unable to establish a secure session. Please try again.");
+        return;
+      }
       setLocallyAuthenticated(true);
       setOtpVerified(false);
       setTimeout(() => navigate({ to: "/otp", replace: true }), 1500);

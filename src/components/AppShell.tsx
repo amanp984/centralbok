@@ -6,6 +6,7 @@ import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
   import { setLocallyAuthenticated, DEMO_DISPLAY_NAME } from "@/lib/demo-user";
+import { signOutBankSession } from "@/lib/bank-session";
 import { setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "./AppLoader";
 
@@ -55,6 +56,7 @@ export function AppShell({
   const handleSignOut = () => {
     setOtpVerified(false);
     setLocallyAuthenticated(false);
+    void signOutBankSession();
     navigate({ to: "/", replace: true });
   };
 
@@ -67,6 +69,7 @@ export function AppShell({
       t = setTimeout(() => {
         setOtpVerified(false);
         setLocallyAuthenticated(false);
+        void signOutBankSession();
         toast.error("Your session has expired due to inactivity. Please sign in again.");
         navigate({ to: "/", replace: true });
       }, TIMEOUT_MS);

@@ -6,6 +6,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { setLocallyAuthenticated } from "@/lib/demo-user";
+import { signOutBankSession } from "@/lib/bank-session";
 import { setOtpVerified } from "@/lib/otp-pool";
 import logoAsset from "@/assets/cbi-emblem.png.asset.json";
 
@@ -39,6 +40,7 @@ export function AppSidebar({
     qc.clear();
     setOtpVerified(false);
     setLocallyAuthenticated(false);
+    await signOutBankSession();
     navigate({ to: "/", replace: true });
   };
 

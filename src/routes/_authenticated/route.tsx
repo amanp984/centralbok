@@ -1,16 +1,23 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { isLocallyAuthenticated } from "@/lib/demo-user";
+import { signInBankSession } from "@/lib/bank-session";
 import { isOtpVerified } from "@/lib/otp-pool";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: () => {
+  beforeLoad: async () => {
     if (!isLocallyAuthenticated()) {
       throw redirect({ to: "/" });
     }
     if (!isOtpVerified()) {
       throw redirect({ to: "/otp" });
+    }
+    // Banking tables are owner-scoped by RLS — make sure the real auth
+    // session is live (re-establish it after a token expiry / reload).
+    const ok = await signInBankSession();
+    if (!ok) {
+      throw redirect({ to: "/" });
     }
   },
   component: AuthenticatedLayout,
