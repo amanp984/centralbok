@@ -6,6 +6,7 @@ import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useBankingRealtime } from "@/hooks/use-banking-data";
   import { setLocallyAuthenticated, DEMO_DISPLAY_NAME } from "@/lib/demo-user";
+import { signOutBankSession } from "@/lib/bank-session";
 import { setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "./AppLoader";
 
