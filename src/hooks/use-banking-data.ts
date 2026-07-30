@@ -35,6 +35,7 @@ export type Beneficiary = {
   name: string;
   account_number: string;
   ifsc: string;
+  bank_name: string | null;
   nickname: string | null;
   is_favourite: boolean;
   created_at: string;
