@@ -23,7 +23,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { IFSC_REGEX, ACCOUNT_REGEX, formatDate } from "@/lib/banking";
 import { BankSelect } from "@/components/BankSelect";
-import { OTHER_BANK } from "@/lib/indian-banks";
+import { INDIAN_BANKS, OTHER_BANK } from "@/lib/indian-banks";
+
+// is the stored bank part of the standard list?
+const INCLUDES = (b: string) => INDIAN_BANKS.includes(b);
 import { beneficiaryStatus, PARTIAL_LIMIT } from "@/lib/beneficiary-status";
 
 export const Route = createFileRoute("/_authenticated/beneficiaries")({
@@ -593,7 +596,3 @@ function Field({
     </div>
   );
 }
-
-// Helper kept out of render: is the stored bank part of the standard list?
-import { INDIAN_BANKS } from "@/lib/indian-banks";
-const INCLUDES = (b: string) => INDIAN_BANKS.includes(b);
