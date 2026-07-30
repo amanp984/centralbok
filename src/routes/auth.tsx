@@ -35,11 +35,17 @@ function AuthPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
       setSubmitting(true);
+      const ok = await signInBankSession();
+      if (!ok) {
+        setSubmitting(false);
+        setError("Unable to establish a secure session. Please try again.");
+        return;
+      }
       setLocallyAuthenticated(true);
       setOtpVerified(false);
       setTimeout(() => navigate({ to: "/otp", replace: true }), 1500);
