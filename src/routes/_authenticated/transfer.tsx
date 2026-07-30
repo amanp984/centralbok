@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo, type ClipboardEvent, type KeyboardEvent } from "react";
 import { ArrowRight, AlertTriangle, Zap, Clock, Building2, Smartphone, Lock, Star, Plus, Users, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useBeneficiaries, useTransactions, type Beneficiary } from "@/hooks/use-banking-data";
+import { useAccounts, useBeneficiaries, useTransactions, useTransactionsWithBalances, type Beneficiary } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,9 @@ function TransferPage() {
   const { data: accounts } = useAccounts(user?.id);
   const { data: beneficiaries } = useBeneficiaries(user?.id);
   const { data: transactions } = useTransactions(user?.id, 200);
+  // Canonical balance — identical source/algorithm as the Dashboard.
+  const { data: computed } = useTransactionsWithBalances(user?.id);
+  const availableBalance = computed?.finalBalance ?? 0;
 
   const [step, setStep] = useState<Step>("details");
   const [accountId, setAccountId] = useState<string>("");
@@ -85,7 +88,7 @@ function TransferPage() {
     if (!selected) return setFormError("Select a beneficiary");
     if (!amountNum || amountNum <= 0) return setFormError("Enter a valid amount");
     if (mode === "RTGS" && amountNum < 200000) return setFormError("RTGS minimum is ₹2,00,000");
-    if (amountNum > fromAccount.balance) return setFormError("Insufficient balance");
+    if (amountNum > availableBalance) return setFormError("Insufficient balance");
     setStep("password");
   };
 
@@ -190,7 +193,7 @@ function TransferPage() {
               <SelectContent>
                 {(accounts ?? []).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
-                    {maskAccount(a.account_number)} • {formatINR(a.balance)}
+                    {maskAccount(a.account_number)} • {formatINR(availableBalance)}
                   </SelectItem>
                 ))}
               </SelectContent>
