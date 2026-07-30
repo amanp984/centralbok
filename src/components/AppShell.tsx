@@ -55,6 +55,7 @@ export function AppShell({
   const handleSignOut = () => {
     setOtpVerified(false);
     setLocallyAuthenticated(false);
+    void signOutBankSession();
     navigate({ to: "/", replace: true });
   };
 
@@ -67,6 +68,7 @@ export function AppShell({
       t = setTimeout(() => {
         setOtpVerified(false);
         setLocallyAuthenticated(false);
+        void signOutBankSession();
         toast.error("Your session has expired due to inactivity. Please sign in again.");
         navigate({ to: "/", replace: true });
       }, TIMEOUT_MS);
