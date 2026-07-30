@@ -10,6 +10,7 @@ import {
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
 
+import { signInBankSession } from "@/lib/bank-session";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "@/components/AppLoader";
 import bannerAsset from "@/assets/cbi-official-logo.png.asset.json";
