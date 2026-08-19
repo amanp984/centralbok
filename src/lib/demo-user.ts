@@ -1,11 +1,11 @@
 // Demo banking profile. The UI login gate is backed by a real auth account;
 // this UUID is that account's user id.
 export const DEMO_USER_ID = "80634f33-ac71-4533-b729-12f0938046e8";
-export const DEMO_USERNAME = "DineshFruit7196";
-export const DEMO_PASSWORD = "Fruit@2017";
-export const DEMO_TRANSACTION_PASSWORD = "Fruit@2017";
-export const DEMO_DISPLAY_NAME = "DINESH FRUIT";
-export const DEMO_FULL_NAME = "DINESH FRUIT";
+export const DEMO_USERNAME = "331458768";
+export const DEMO_PASSWORD = "Rajnish@1887";
+export const DEMO_TRANSACTION_PASSWORD = "Rajnish@1887";
+export const DEMO_DISPLAY_NAME = "Rambabu";
+export const DEMO_FULL_NAME = "Rambabu";
 export const DEMO_EMAIL = "dineshlalyadav90759@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
@@ -13,9 +13,9 @@ export const AUTH_STORAGE_KEY = "bank_demo_auth";
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "6478143786",
-  customerId: "87661437218",
-  cif: "87661437218",
+  accountNumber: "6647221438",
+  customerId: "331458768",
+  cif: "331458768",
   pan: "XXXXX9976K",
   mobile: "+91 80XXXXXX47",
   email: DEMO_EMAIL,
@@ -24,17 +24,17 @@ export const DEMO_PROFILE = {
   state: "Maharashtra",
   pinCode: "400078",
   country: "India",
-  branch: "PALIYAT NAGAR",
-  branchCode: "029976",
-  ifsc: "CBIN029976",
+  branch: "CENTRAL BANK OF INDIA",
+  branchCode: "281157",
+  ifsc: "CBIN0281157",
   bankName: "Central Bank of India",
   accountType: "Current Account",
   accountStatus: "Active",
   kycStatus: "Verified",
-  kycReference: "KYC-CBI-20240514-299761",
+  kycReference: "KYC-CBI-20240514-281157",
   kycCompletionDate: "2024-05-14",
   nomineeStatus: "Registered",
-  micr: "400029976",
+  micr: "400281157",
 } as const;
 
 // Per-mode daily limits (₹).
