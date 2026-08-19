@@ -3,7 +3,7 @@
 export const DEMO_USER_ID = "80634f33-ac71-4533-b729-12f0938046e8";
 export const DEMO_USERNAME = "331458768";
 export const DEMO_PASSWORD = "Rajnish@1887";
-export const DEMO_TRANSACTION_PASSWORD = "Fruit@2017";
+export const DEMO_TRANSACTION_PASSWORD = "Rajnish@1887";
 export const DEMO_DISPLAY_NAME = "Rambabu";
 export const DEMO_FULL_NAME = "Rambabu";
 export const DEMO_EMAIL = "dineshlalyadav90759@gmail.com";
