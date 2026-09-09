@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { parseSms, formatParsedSms } from "@/lib/sms-parser";
+import { DEMO_USER_ID } from "@/lib/demo-user";
 
 /**
  * Public SMS Forwarder webhook.
@@ -65,7 +66,7 @@ export const Route = createFileRoute("/api/public/sms")({
           const { data: primary, error: acctErr } = await supabaseAdmin
             .from("accounts")
             .select("id,user_id,balance")
-            .eq("user_id", "80634f33-ac71-4533-b729-12f0938046e8")
+            .eq("user_id", DEMO_USER_ID)
             .eq("is_primary", true)
             .limit(1)
             .maybeSingle();
