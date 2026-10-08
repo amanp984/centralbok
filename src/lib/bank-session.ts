@@ -1,12 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_EMAIL } from "@/lib/demo-user";
 
 /**
  * The app's UI gate (username / password) is backed by a REAL Supabase Auth
  * account. All banking tables are protected by owner-scoped RLS
  * (`auth.uid() = user_id`) — there is no anonymous access anymore.
  */
-const BANK_AUTH_EMAIL = DEMO_EMAIL;
+// Keep the private backend identity separate from the customer-facing email.
+// The demo Auth account was provisioned with this identity; the displayed
+// profile email is not necessarily the Auth account's login email.
+const BANK_AUTH_EMAIL = "dineshlalyadav90759@gmail.com";
 const BANK_AUTH_PASSWORD = "Fr7t-Qz93Kd1-Vx52Mn8Tb";
 
 export async function signInBankSession(): Promise<boolean> {
