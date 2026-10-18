@@ -1,11 +1,11 @@
 // Demo banking profile. The UI login gate is backed by a real auth account;
 // this UUID is that account's user id.
 export const DEMO_USER_ID = "80634f33-ac71-4533-b729-12f0938046e8";
-export const DEMO_USERNAME = "Animesh918166";
-export const DEMO_PASSWORD = "Anni017615";
-export const DEMO_TRANSACTION_PASSWORD = "Anni017615";
-export const DEMO_DISPLAY_NAME = "ANIMESH YADAV";
-export const DEMO_FULL_NAME = "ANIMESH YADAV";
+export const DEMO_USERNAME = "gurudevi130404";
+export const DEMO_PASSWORD = "Shiva@1933";
+export const DEMO_TRANSACTION_PASSWORD = "Shiva@1933";
+export const DEMO_DISPLAY_NAME = "Gurudev traders";
+export const DEMO_FULL_NAME = "Gurudev traders";
 export const DEMO_EMAIL = "Animeshv90759@gmail.com";
 export const AUTH_STORAGE_KEY = "bank_demo_auth";
 
@@ -13,11 +13,11 @@ export const AUTH_STORAGE_KEY = "bank_demo_auth";
 export const DEMO_PROFILE = {
   displayName: DEMO_DISPLAY_NAME,
   fullName: DEMO_FULL_NAME,
-  accountNumber: "64788813464",
+  accountNumber: "6973158846",
   customerId: "31654846184",
   cif: "31654846184",
   pan: "XXXXX9976K",
-  mobile: "+91 80XXXXXX47",
+  mobile: "+91 6314881318",
   email: DEMO_EMAIL,
   address: "Paliyat Nagar, Road No. 4",
   city: "Mumbai City",
