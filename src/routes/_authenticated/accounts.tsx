@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances, useHoldAmount, saveHoldAmount } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { formatINR, maskAccount } from "@/lib/banking";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import { toast } from "sonner";
@@ -28,7 +34,12 @@ function AccountsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
   const { data: computed } = useTransactionsWithBalances(user?.id);
+  const { data: holdAmount } = useHoldAmount(user?.id);
+  const qc = useQueryClient();
   const [reveal, setReveal] = useState(false);
+  const [holdOpen, setHoldOpen] = useState(false);
+  const [holdInput, setHoldInput] = useState("");
+  const [holdSaving, setHoldSaving] = useState(false);
 
   const primary =
     accounts?.find((a) => a.is_primary) ?? accounts?.[0] ?? FALLBACK_ACCOUNT;
