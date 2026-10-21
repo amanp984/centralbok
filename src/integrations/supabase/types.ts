@@ -174,6 +174,7 @@ export type Database = {
           address: string | null
           created_at: string
           currency: string
+          hold_amount: number
           id: string
           language: string
           login_alerts: boolean
@@ -191,6 +192,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           currency?: string
+          hold_amount?: number
           id?: string
           language?: string
           login_alerts?: boolean
@@ -208,6 +210,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           currency?: string
+          hold_amount?: number
           id?: string
           language?: string
           login_alerts?: boolean

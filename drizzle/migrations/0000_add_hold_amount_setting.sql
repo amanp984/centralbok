@@ -1,0 +1,2 @@
+ALTER TABLE public.user_settings ADD COLUMN hold_amount numeric NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.user_settings.hold_amount IS 'Demo hold amount shown in Balance Summary; display configuration only.';
