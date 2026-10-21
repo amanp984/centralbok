@@ -118,6 +118,30 @@ export function useTransactionsWithBalances(userId: string | undefined) {
   });
 }
 
+export function useHoldAmount(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["settings", "hold-amount", userId ?? ""] as const,
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("hold_amount")
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return Number(data?.hold_amount ?? 0);
+    },
+  });
+}
+
+/** Persist the demo Hold Amount display value (user_settings row, owner-scoped by RLS). */
+export async function saveHoldAmount(userId: string, amount: number) {
+  const { error } = await supabase
+    .from("user_settings")
+    .upsert({ user_id: userId, hold_amount: amount }, { onConflict: "user_id" });
+  if (error) throw error;
+}
+
 /**
  * Subscribe (once at the app shell) to realtime changes for the user's
  * banking tables and invalidate any related Query caches. Falls back to
@@ -138,7 +162,7 @@ export function useBankingRealtime(userId: string | undefined) {
       qc.invalidateQueries({
         predicate: (q) => {
           const k = q.queryKey?.[0];
-          return k === "transactions" || k === "accounts" || k === "beneficiaries" || k === "statement";
+          return k === "transactions" || k === "accounts" || k === "beneficiaries" || k === "statement" || k === "settings";
         },
       });
     };
