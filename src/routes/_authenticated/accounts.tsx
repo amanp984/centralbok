@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
+import { useAccounts, useTransactionsWithBalances, useHoldAmount, saveHoldAmount } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { formatINR, maskAccount } from "@/lib/banking";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import { toast } from "sonner";
@@ -28,13 +34,43 @@ function AccountsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
   const { data: computed } = useTransactionsWithBalances(user?.id);
+  const { data: holdAmount } = useHoldAmount(user?.id);
+  const qc = useQueryClient();
   const [reveal, setReveal] = useState(false);
+  const [holdOpen, setHoldOpen] = useState(false);
+  const [holdInput, setHoldInput] = useState("");
+  const [holdSaving, setHoldSaving] = useState(false);
 
   const primary =
     accounts?.find((a) => a.is_primary) ?? accounts?.[0] ?? FALLBACK_ACCOUNT;
 
   // Use the computed balance from transaction history (same source as Dashboard)
   const availableBalance = computed?.finalBalance ?? 0;
+
+  const openHoldDialog = () => {
+    setHoldInput(String(holdAmount ?? 0));
+    setHoldOpen(true);
+  };
+
+  const submitHold = async () => {
+    if (!user) return;
+    const raw = holdInput.trim().replace(/[₹,\s]/g, "");
+    if (raw === "") { toast.error("Enter a hold amount."); return; }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) { toast.error("Hold amount must be a valid number."); return; }
+    if (parsed < 0) { toast.error("Hold amount cannot be negative."); return; }
+    setHoldSaving(true);
+    try {
+      await saveHoldAmount(user.id, parsed);
+      await qc.invalidateQueries({ queryKey: ["settings"] });
+      toast.success("Hold amount updated");
+      setHoldOpen(false);
+    } catch {
+      toast.error("Could not save the hold amount. Please try again.");
+    } finally {
+      setHoldSaving(false);
+    }
+  };
 
   // Calculate monthly credits/debits from transaction history
   const monthlyCredit = (computed?.items ?? [])
@@ -113,7 +149,7 @@ function AccountsPage() {
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
           <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
-          <Row label="Hold Amount" value={formatINR(0)} />
+          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onEdit={openHoldDialog} />
         </Grid>
       </Card>
 
@@ -137,6 +173,40 @@ function AccountsPage() {
           </p>
         </div>
       </Card>
+
+      {/* Hold Amount edit dialog (demo display configuration) */}
+      <Dialog open={holdOpen} onOpenChange={setHoldOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Hold Amount</DialogTitle>
+            <DialogDescription>
+              Update the hold amount shown in Balance Summary. Display setting only — it does not change your account balance or transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="hold-amount-input">Hold Amount (₹)</Label>
+            <Input
+              id="hold-amount-input"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={holdInput}
+              onChange={(e) => setHoldInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void submitHold(); }}
+              placeholder="0.00"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">Only non-negative amounts are allowed.</p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setHoldOpen(false)} disabled={holdSaving}>Cancel</Button>
+            <Button onClick={() => void submitHold()} disabled={holdSaving}>
+              {holdSaving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -169,11 +239,26 @@ function Card({ title, right, children }: { title: string; right?: React.ReactNo
 function Grid({ children }: { children: React.ReactNode }) {
   return <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">{children}</dl>;
 }
-function Row({ label, value, mono, accent }: { label: string; value: string; mono?: boolean; accent?: string }) {
+function Row({ label, value, mono, accent, onEdit }: { label: string; value: string; mono?: boolean; accent?: string; onEdit?: () => void }) {
+  const dd = `mt-1 font-semibold text-sm break-words ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`;
   return (
     <div className="min-w-0">
       <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</dt>
-      <dd className={`mt-1 font-semibold text-sm break-words ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}>{value}</dd>
+      {onEdit ? (
+        <dd>
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Edit hold amount"
+            className={`flex items-center gap-1.5 font-semibold text-sm break-words rounded-md px-1 -mx-1 py-0.5 -my-0.5 transition-colors hover:bg-primary/10 hover:text-primary ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}
+          >
+            {value}
+            <Pencil className="w-3 h-3 shrink-0 opacity-50" />
+          </button>
+        </dd>
+      ) : (
+        <dd className={dd}>{value}</dd>
+      )}
     </div>
   );
 }
