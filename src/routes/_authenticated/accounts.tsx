@@ -47,6 +47,31 @@ function AccountsPage() {
   // Use the computed balance from transaction history (same source as Dashboard)
   const availableBalance = computed?.finalBalance ?? 0;
 
+  const openHoldDialog = () => {
+    setHoldInput(String(holdAmount ?? 0));
+    setHoldOpen(true);
+  };
+
+  const submitHold = async () => {
+    if (!user) return;
+    const raw = holdInput.trim().replace(/[₹,\s]/g, "");
+    if (raw === "") { toast.error("Enter a hold amount."); return; }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) { toast.error("Hold amount must be a valid number."); return; }
+    if (parsed < 0) { toast.error("Hold amount cannot be negative."); return; }
+    setHoldSaving(true);
+    try {
+      await saveHoldAmount(user.id, parsed);
+      await qc.invalidateQueries({ queryKey: ["settings"] });
+      toast.success("Hold amount updated");
+      setHoldOpen(false);
+    } catch {
+      toast.error("Could not save the hold amount. Please try again.");
+    } finally {
+      setHoldSaving(false);
+    }
+  };
+
   // Calculate monthly credits/debits from transaction history
   const monthlyCredit = (computed?.items ?? [])
     .filter((t) => t.direction === "credit" && isThisMonth(t.created_at))
@@ -155,31 +180,6 @@ function AccountsPage() {
 function isThisMonth(iso: string) {
   const d = new Date(iso); const n = new Date();
   return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
-}
-
-function openHoldDialog() {
-  setHoldInput(String(holdAmount ?? 0));
-  setHoldOpen(true);
-}
-
-async function submitHold() {
-  if (!user) return;
-  const raw = holdInput.trim().replace(/[₹,\s]/g, "");
-  if (raw === "") { toast.error("Enter a hold amount."); return; }
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed)) { toast.error("Hold amount must be a valid number."); return; }
-  if (parsed < 0) { toast.error("Hold amount cannot be negative."); return; }
-  setHoldSaving(true);
-  try {
-    await saveHoldAmount(user.id, parsed);
-    await qc.invalidateQueries({ queryKey: ["settings"] });
-    toast.success("Hold amount updated");
-    setHoldOpen(false);
-  } catch (e) {
-    toast.error("Could not save the hold amount. Please try again.");
-  } finally {
-    setHoldSaving(false);
-  }
 }
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: typeof FileText; label: string }) {
