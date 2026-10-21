@@ -245,15 +245,17 @@ function Row({ label, value, mono, accent, onEdit }: { label: string; value: str
     <div className="min-w-0">
       <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</dt>
       {onEdit ? (
-        <button
-          type="button"
-          onClick={onEdit}
-          title="Edit hold amount"
-          className={`mt-1 flex items-center gap-1.5 font-semibold text-sm break-words rounded-md px-1 -mx-1 py-0.5 -my-0.5 transition-colors hover:bg-primary/10 hover:text-primary ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}
-        >
-          {value}
-          <Pencil className="w-3 h-3 shrink-0 opacity-50" />
-        </button>
+        <dd>
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Edit hold amount"
+            className={`flex items-center gap-1.5 font-semibold text-sm break-words rounded-md px-1 -mx-1 py-0.5 -my-0.5 transition-colors hover:bg-primary/10 hover:text-primary ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}
+          >
+            {value}
+            <Pencil className="w-3 h-3 shrink-0 opacity-50" />
+          </button>
+        </dd>
       ) : (
         <dd className={dd}>{value}</dd>
       )}
