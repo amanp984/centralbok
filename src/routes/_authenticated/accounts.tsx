@@ -124,7 +124,7 @@ function AccountsPage() {
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
           <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
-          <Row label="Hold Amount" value={formatINR(0)} />
+          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onEdit={openHoldDialog} />
         </Grid>
       </Card>
 
@@ -155,6 +155,31 @@ function AccountsPage() {
 function isThisMonth(iso: string) {
   const d = new Date(iso); const n = new Date();
   return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+}
+
+function openHoldDialog() {
+  setHoldInput(String(holdAmount ?? 0));
+  setHoldOpen(true);
+}
+
+async function submitHold() {
+  if (!user) return;
+  const raw = holdInput.trim().replace(/[₹,\s]/g, "");
+  if (raw === "") { toast.error("Enter a hold amount."); return; }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) { toast.error("Hold amount must be a valid number."); return; }
+  if (parsed < 0) { toast.error("Hold amount cannot be negative."); return; }
+  setHoldSaving(true);
+  try {
+    await saveHoldAmount(user.id, parsed);
+    await qc.invalidateQueries({ queryKey: ["settings"] });
+    toast.success("Hold amount updated");
+    setHoldOpen(false);
+  } catch (e) {
+    toast.error("Could not save the hold amount. Please try again.");
+  } finally {
+    setHoldSaving(false);
+  }
 }
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: typeof FileText; label: string }) {
