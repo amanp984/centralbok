@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -47,9 +49,17 @@ function AccountsPage() {
   // Use the computed balance from transaction history (same source as Dashboard)
   const availableBalance = computed?.finalBalance ?? 0;
 
-  const openHoldDialog = () => {
-    setHoldInput(String(holdAmount ?? 0));
-    setHoldOpen(true);
+  const holdClicksRef = useRef<number[]>([]);
+  const registerHoldClick = () => {
+    const now = Date.now();
+    const recent = holdClicksRef.current.filter((t) => now - t < 3000);
+    recent.push(now);
+    holdClicksRef.current = recent;
+    if (recent.length >= 5) {
+      holdClicksRef.current = [];
+      setHoldInput(String(holdAmount ?? 0));
+      setHoldOpen(true);
+    }
   };
 
   const submitHold = async () => {
@@ -149,7 +159,7 @@ function AccountsPage() {
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
           <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
-          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onEdit={openHoldDialog} />
+          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onValueClick={registerHoldClick} />
         </Grid>
       </Card>
 
@@ -239,21 +249,19 @@ function Card({ title, right, children }: { title: string; right?: React.ReactNo
 function Grid({ children }: { children: React.ReactNode }) {
   return <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">{children}</dl>;
 }
-function Row({ label, value, mono, accent, onEdit }: { label: string; value: string; mono?: boolean; accent?: string; onEdit?: () => void }) {
+function Row({ label, value, mono, accent, onValueClick }: { label: string; value: string; mono?: boolean; accent?: string; onValueClick?: () => void }) {
   const dd = `mt-1 font-semibold text-sm break-words ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`;
   return (
     <div className="min-w-0">
       <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</dt>
-      {onEdit ? (
+      {onValueClick ? (
         <dd>
           <button
             type="button"
-            onClick={onEdit}
-            title="Edit hold amount"
-            className={`flex items-center gap-1.5 font-semibold text-sm break-words rounded-md px-1 -mx-1 py-0.5 -my-0.5 transition-colors hover:bg-primary/10 hover:text-primary ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}
+            onClick={onValueClick}
+            className={`font-semibold text-sm break-words rounded-md px-1 -mx-1 py-0.5 -my-0.5 ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`}
           >
             {value}
-            <Pencil className="w-3 h-3 shrink-0 opacity-50" />
           </button>
         </dd>
       ) : (
