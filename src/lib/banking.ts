@@ -13,6 +13,26 @@ export const formatDateTime = (iso: string) =>
 export const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 export const ACCOUNT_REGEX = /^\d{9,18}$/;
 
+export type AccountBalanceSummary = {
+  ledgerBalance: number;
+  activeHoldAmount: number;
+  availableBalance: number;
+};
+
+export function getAccountBalanceSummary(
+  ledgerBalance: number | string | null | undefined,
+  activeHoldAmount: number | string | null | undefined,
+): AccountBalanceSummary {
+  const ledger = Number(ledgerBalance ?? 0) || 0;
+  const hold = Number(activeHoldAmount ?? 0) || 0;
+
+  return {
+    ledgerBalance: Math.round(ledger * 100) / 100,
+    activeHoldAmount: Math.round(hold * 100) / 100,
+    availableBalance: Math.round((ledger - hold) * 100) / 100,
+  };
+}
+
 /**
  * Compute running balances by walking transactions oldest → newest.
  * Ignores any stored running_balance on the input rows. Returns items
