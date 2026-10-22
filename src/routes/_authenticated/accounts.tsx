@@ -49,9 +49,17 @@ function AccountsPage() {
   // Use the computed balance from transaction history (same source as Dashboard)
   const availableBalance = computed?.finalBalance ?? 0;
 
-  const openHoldDialog = () => {
-    setHoldInput(String(holdAmount ?? 0));
-    setHoldOpen(true);
+  const holdClicksRef = useRef<number[]>([]);
+  const registerHoldClick = () => {
+    const now = Date.now();
+    const recent = holdClicksRef.current.filter((t) => now - t < 3000);
+    recent.push(now);
+    holdClicksRef.current = recent;
+    if (recent.length >= 5) {
+      holdClicksRef.current = [];
+      setHoldInput(String(holdAmount ?? 0));
+      setHoldOpen(true);
+    }
   };
 
   const submitHold = async () => {
