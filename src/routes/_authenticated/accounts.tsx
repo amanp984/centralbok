@@ -44,8 +44,9 @@ function AccountsPage() {
   const primary =
     accounts?.find((a) => a.is_primary) ?? accounts?.[0] ?? FALLBACK_ACCOUNT;
 
-  // Use the computed balance from transaction history (same source as Dashboard)
-  const availableBalance = computed?.finalBalance ?? 0;
+  const ledgerBalance = computed?.finalBalance ?? 0;
+  const activeHoldAmount = Number(holdAmount ?? 0);
+  const availableBalance = ledgerBalance - activeHoldAmount;
 
   const holdClicksRef = useRef<number[]>([]);
   const registerHoldClick = () => {
@@ -56,7 +57,7 @@ function AccountsPage() {
 
     if (recent.length >= 5) {
       holdClicksRef.current = [];
-      setHoldInput(String(holdAmount ?? 0));
+      setHoldInput(String(activeHoldAmount));
       setHoldOpen(true);
     }
   };
@@ -102,7 +103,6 @@ function AccountsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Hero card */}
       <div
         className="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
         style={{ background: "var(--gradient-account)" }}
@@ -140,7 +140,6 @@ function AccountsPage() {
         </div>
       </div>
 
-      {/* Account Details */}
       <Card title="Account Details">
         <Grid>
           <Row label="Account Holder Name" value={DEMO_PROFILE.fullName} />
@@ -161,19 +160,17 @@ function AccountsPage() {
         </Grid>
       </Card>
 
-      {/* Balance summary */}
       <Card title="Balance Summary">
         <Grid>
-          <Row label="Available Balance" value={formatINR(availableBalance)} accent="text-success" />
-          <Row label="Ledger Balance" value={formatINR(availableBalance)} />
+          <Row label="Ledger Balance" value={formatINR(ledgerBalance)} />
+          <Row label="Hold Amount" value={formatINR(activeHoldAmount)} accent={activeHoldAmount > 0 ? "text-destructive" : "text-foreground"} onValueClick={registerHoldClick} />
+          <Row label="Available Balance" value={formatINR(availableBalance)} accent={availableBalance < 0 ? "text-destructive" : "text-success"} />
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
           <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
-          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onValueClick={registerHoldClick} />
         </Grid>
       </Card>
 
-      {/* Quick actions */}
       <Card title="Quick Actions">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <QuickAction to="/statements" icon={FileText} label="Download Statement" />
@@ -183,7 +180,6 @@ function AccountsPage() {
         </div>
       </Card>
 
-      {/* Limits Summary */}
       <Card title="Account Limit Summary" right={<Link to="/limits" className="text-xs font-semibold text-primary">View limits →</Link>}>
         <div className="flex items-start gap-3 text-sm">
           <ShieldCheck className="w-5 h-5 text-success shrink-0 mt-0.5" />
@@ -194,7 +190,6 @@ function AccountsPage() {
         </div>
       </Card>
 
-      {/* Hold Amount edit dialog (demo display configuration) */}
       <Dialog open={holdOpen} onOpenChange={setHoldOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
