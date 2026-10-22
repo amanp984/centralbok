@@ -159,7 +159,7 @@ function AccountsPage() {
           <Row label="Monthly Credits" value={formatINR(monthlyCredit)} accent="text-success" />
           <Row label="Monthly Debits" value={formatINR(monthlyDebit)} accent="text-destructive" />
           <Row label="Transaction Count" value={String((computed?.items ?? []).length)} />
-          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onEdit={openHoldDialog} />
+          <Row label="Hold Amount" value={formatINR(holdAmount ?? 0)} onValueClick={registerHoldClick} />
         </Grid>
       </Card>
 
