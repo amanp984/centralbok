@@ -41,7 +41,7 @@ const ROUTE_META: Record<string, { title: string; description: string; section: 
 
 function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
+  const isLoading = useRouterState({ select: (s) => s.isLoading });
   const meta = ROUTE_META[pathname] ?? { title: "Central Bank of India", description: "", section: "Banking" };
 
   return (
