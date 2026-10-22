@@ -2,8 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useTransactionsWithBalances, useHoldAmount, saveHoldAmount } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
@@ -55,6 +53,7 @@ function AccountsPage() {
     const recent = holdClicksRef.current.filter((t) => now - t < 3000);
     recent.push(now);
     holdClicksRef.current = recent;
+
     if (recent.length >= 5) {
       holdClicksRef.current = [];
       setHoldInput(String(holdAmount ?? 0));
@@ -64,11 +63,23 @@ function AccountsPage() {
 
   const submitHold = async () => {
     if (!user) return;
+
     const raw = holdInput.trim().replace(/[₹,\s]/g, "");
-    if (raw === "") { toast.error("Enter a hold amount."); return; }
+    if (raw === "") {
+      toast.error("Enter a hold amount.");
+      return;
+    }
+
     const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) { toast.error("Hold amount must be a valid number."); return; }
-    if (parsed < 0) { toast.error("Hold amount cannot be negative."); return; }
+    if (!Number.isFinite(parsed)) {
+      toast.error("Hold amount must be a valid number.");
+      return;
+    }
+    if (parsed < 0) {
+      toast.error("Hold amount cannot be negative.");
+      return;
+    }
+
     setHoldSaving(true);
     try {
       await saveHoldAmount(user.id, parsed);
@@ -82,7 +93,6 @@ function AccountsPage() {
     }
   };
 
-  // Calculate monthly credits/debits from transaction history
   const monthlyCredit = (computed?.items ?? [])
     .filter((t) => t.direction === "credit" && isThisMonth(t.created_at))
     .reduce((s, t) => s + Number(t.amount), 0);
@@ -222,7 +232,8 @@ function AccountsPage() {
 }
 
 function isThisMonth(iso: string) {
-  const d = new Date(iso); const n = new Date();
+  const d = new Date(iso);
+  const n = new Date();
   return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
 }
 
@@ -246,9 +257,11 @@ function Card({ title, right, children }: { title: string; right?: React.ReactNo
     </section>
   );
 }
+
 function Grid({ children }: { children: React.ReactNode }) {
   return <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">{children}</dl>;
 }
+
 function Row({ label, value, mono, accent, onValueClick }: { label: string; value: string; mono?: boolean; accent?: string; onValueClick?: () => void }) {
   const dd = `mt-1 font-semibold text-sm break-words ${mono ? "font-mono" : ""} ${accent ?? "text-foreground"}`;
   return (
