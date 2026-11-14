@@ -1,0 +1,88 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { demoProfileUpdateSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+
+const validTransaction = {
+  action: "add" as const,
+  amount: 250,
+  direction: "debit" as const,
+  mode: "UPI" as const,
+  beneficiaryName: "Demo Recipient",
+  upiId: "recipient@upi",
+  beneficiaryAccount: "",
+  beneficiaryIfsc: "",
+  reference: "DEMO-UTR-20261114",
+  description: "DEMO / SIMULATED UPI debit",
+  createdAt: "2026-11-14T06:00:00.000Z",
+};
+
+describe("demo admin validation", () => {
+  it("accepts a valid demo profile and an eight-character password update", () => {
+    const result = demoProfileUpdateSchema.safeParse({
+      fullName: "Demo User",
+      email: "demo@example.test",
+      mobile: "",
+      customerId: "",
+      accountNumber: "1234567890",
+      accountType: "Current Account",
+      ifsc: "CBIN0001234",
+      branch: "Demo Branch",
+      branchAddress: "",
+      communicationAddress: "",
+      username: "demo-user",
+      password: "demo-pass-1",
+    });
+    assert.equal(result.success, true);
+  });
+
+  it("rejects a new demo password shorter than eight characters", () => {
+    const result = demoProfileUpdateSchema.safeParse({
+      fullName: "Demo User",
+      email: "demo@example.test",
+      mobile: "",
+      customerId: "",
+      accountNumber: "1234567890",
+      accountType: "Current Account",
+      ifsc: "CBIN0001234",
+      branch: "Demo Branch",
+      branchAddress: "",
+      communicationAddress: "",
+      username: "demo-user",
+      password: "short",
+    });
+    assert.equal(result.success, false);
+  });
+
+  it("requires a positive amount, description, reference, and timestamp for adds", () => {
+    const noAmount = demoTransactionChangeSchema.safeParse({ ...validTransaction, amount: 0 });
+    const noReference = demoTransactionChangeSchema.safeParse({ ...validTransaction, reference: "" });
+    const noDescription = demoTransactionChangeSchema.safeParse({ ...validTransaction, description: "" });
+    assert.equal(noAmount.success, false);
+    assert.equal(noReference.success, false);
+    assert.equal(noDescription.success, false);
+  });
+
+  it("requires a new UPI ID and unique transaction ID when editing", () => {
+    const missingUpi = demoTransactionChangeSchema.safeParse({ ...validTransaction, upiId: "" });
+    const missingEditId = demoTransactionChangeSchema.safeParse({ ...validTransaction, action: "update" });
+    assert.equal(missingUpi.success, false);
+    assert.equal(missingEditId.success, false);
+  });
+
+  it("accepts a validated existing IMPS credit update while preserving its ID", () => {
+    const result = demoTransactionChangeSchema.safeParse({
+      action: "update",
+      id: "80634f33-ac71-4533-b729-12f0938046e8",
+      amount: 400,
+      direction: "credit",
+      mode: "IMPS",
+      beneficiaryName: "Demo Sender",
+      beneficiaryAccount: "1234567890",
+      beneficiaryIfsc: "CBIN0001234",
+      reference: "DEMO-IMPS-20261114",
+      description: "DEMO / SIMULATED IMPS credit",
+      createdAt: "2026-11-14T06:00:00.000Z",
+    });
+    assert.equal(result.success, true);
+  });
+});

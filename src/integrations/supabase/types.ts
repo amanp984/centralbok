@@ -89,26 +89,101 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_admin_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_login_config: {
+        Row: {
+          password_hash: string
+          password_salt: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          password_hash: string
+          password_salt: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          password_hash?: string
+          password_salt?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          branch: string | null
+          branch_address: string | null
+          communication_address: string | null
           created_at: string
+          customer_id: string | null
+          email: string | null
           full_name: string | null
           id: string
           last_login: string | null
+          mobile: string | null
           updated_at: string
         }
         Insert: {
+          branch?: string | null
+          branch_address?: string | null
+          communication_address?: string | null
           created_at?: string
+          customer_id?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
           last_login?: string | null
+          mobile?: string | null
           updated_at?: string
         }
         Update: {
+          branch?: string | null
+          branch_address?: string | null
+          communication_address?: string | null
           created_at?: string
+          customer_id?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
           last_login?: string | null
+          mobile?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -127,6 +202,7 @@ export type Database = {
           mode: string
           reference: string
           running_balance: number | null
+          upi_id: string | null
           user_id: string
         }
         Insert: {
@@ -142,6 +218,7 @@ export type Database = {
           mode?: string
           reference: string
           running_balance?: number | null
+          upi_id?: string | null
           user_id: string
         }
         Update: {
@@ -157,6 +234,7 @@ export type Database = {
           mode?: string
           reference?: string
           running_balance?: number | null
+          upi_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -231,6 +309,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_demo_transaction: {
+        Args: {
+          p_action: string
+          p_transaction: Json
+          p_transaction_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       execute_transfer: {
         Args: {
           p_account_id: string
@@ -240,6 +327,15 @@ export type Database = {
           p_beneficiary_name: string
           p_description: string
           p_mode: string
+        }
+        Returns: Json
+      }
+      save_demo_admin_profile: {
+        Args: {
+          p_account: Json
+          p_login: Json
+          p_profile: Json
+          p_user_id: string
         }
         Returns: Json
       }

@@ -8,6 +8,7 @@ import logoAsset from "@/assets/brand-logo.png.asset.json";
 type ExportMeta = {
   customerName: string;
   accountNumber: string;
+  accountType?: string;
   ifsc: string;
   cif?: string;
   branch?: string;
@@ -174,7 +175,7 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   const details: Array<[string, string]> = [
     ["Customer Name", sanitize(meta.customerName)],
     ["Account Number", sanitize(meta.accountNumber)],
-    ["Account Type", "CURRENT ACCOUNT"],
+    ["Account Type", sanitize(meta.accountType ?? "CURRENT ACCOUNT")],
     ["IFSC Code", sanitize(meta.ifsc)],
     ["CIF", sanitize(meta.cif ?? "-")],
     ["Branch", sanitize(meta.branch ?? "-")],

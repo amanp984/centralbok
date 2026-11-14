@@ -8,7 +8,7 @@ import {
   MoreHorizontal, ChevronRight, Eye, EyeOff, ArrowUpRight, ArrowDownLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactionsWithBalances } from "@/hooks/use-banking-data";
+import { useAccounts, useDemoProfile, useTransactionsWithBalances } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import logoAsset from "@/assets/cbi-emblem.png.asset.json";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts(user?.id);
+  const { data: savedProfile } = useDemoProfile(user?.id);
   const { data: computed, isLoading: txLoading } = useTransactionsWithBalances(user?.id);
   const recentTx = (computed?.items ?? []).slice(-5).reverse();
   const finalBalance = computed?.finalBalance ?? 0;
@@ -54,7 +55,7 @@ function Dashboard() {
               <div className="relative">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm text-white/80">{DEMO_PROFILE.accountType}</div>
+                    <div className="text-sm text-white/80">{primary?.account_type ?? DEMO_PROFILE.accountType}</div>
                     <div className="inline-block mt-2 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded">PRIMARY</div>
                   </div>
                   <img
@@ -71,19 +72,19 @@ function Dashboard() {
                 <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:text-xs text-white/90">
                   <div className="min-w-0">
                     <dt className="text-white/60 uppercase tracking-wider">Account Holder</dt>
-                    <dd className="font-semibold truncate">{DEMO_PROFILE.fullName}</dd>
+                    <dd className="font-semibold truncate">{savedProfile?.full_name ?? DEMO_PROFILE.fullName}</dd>
                   </div>
                   <div className="min-w-0">
                     <dt className="text-white/60 uppercase tracking-wider">CIF</dt>
-                    <dd className="font-semibold truncate">{DEMO_PROFILE.cif}</dd>
+                    <dd className="font-semibold truncate">{savedProfile?.customer_id ?? DEMO_PROFILE.cif}</dd>
                   </div>
                   <div className="min-w-0">
                     <dt className="text-white/60 uppercase tracking-wider">IFSC</dt>
-                    <dd className="font-semibold truncate">{DEMO_PROFILE.ifsc}</dd>
+                    <dd className="font-semibold truncate">{primary?.ifsc ?? DEMO_PROFILE.ifsc}</dd>
                   </div>
                   <div className="min-w-0">
                     <dt className="text-white/60 uppercase tracking-wider">Branch</dt>
-                    <dd className="font-semibold truncate">{DEMO_PROFILE.branch}</dd>
+                    <dd className="font-semibold truncate">{savedProfile?.branch ?? DEMO_PROFILE.branch}</dd>
                   </div>
                 </dl>
 

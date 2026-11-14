@@ -30,7 +30,7 @@ export function AppShell({
   const navigate = useNavigate();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const fullName = DEMO_DISPLAY_NAME;
+  const fullName = user?.full_name ?? DEMO_DISPLAY_NAME;
 
   // Show a brief overlay on every route change to mask white flashes.
   const pathname = useRouterState({ select: (s) => s.location.pathname });

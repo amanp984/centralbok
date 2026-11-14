@@ -5,6 +5,7 @@ import {
   DEMO_FULL_NAME,
   isLocallyAuthenticated,
 } from "@/lib/demo-user";
+import { useDemoProfile } from "@/hooks/use-banking-data";
 
 export type DemoUser = {
   id: string;
@@ -25,6 +26,7 @@ const DEMO_USER: DemoUser = {
 export function useAuth() {
   const [authed, setAuthed] = useState<boolean>(() => isLocallyAuthenticated());
   const [loading, setLoading] = useState(true);
+  const { data: profile } = useDemoProfile(authed ? DEMO_USER_ID : undefined);
 
   useEffect(() => {
     setAuthed(isLocallyAuthenticated());
@@ -37,8 +39,8 @@ export function useAuth() {
   }, []);
 
   return {
-    user: authed ? DEMO_USER : null,
-    session: authed ? { user: DEMO_USER } : null,
+    user: authed ? { ...DEMO_USER, email: profile?.email ?? DEMO_EMAIL, full_name: profile?.full_name ?? DEMO_FULL_NAME } : null,
+    session: authed ? { user: { ...DEMO_USER, email: profile?.email ?? DEMO_EMAIL, full_name: profile?.full_name ?? DEMO_FULL_NAME } } : null,
     loading,
   };
 }

@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Copy, ArrowLeftRight, FileText, ShieldCheck, Users, Gauge } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactionsWithBalances, useHoldAmount, saveHoldAmount } from "@/hooks/use-banking-data";
+import { useAccounts, useDemoProfile, useTransactionsWithBalances, useHoldAmount, saveHoldAmount } from "@/hooks/use-banking-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ const FALLBACK_ACCOUNT = {
 function AccountsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
+  const { data: savedProfile } = useDemoProfile(user?.id);
   const { data: computed } = useTransactionsWithBalances(user?.id);
   const { data: holdAmount } = useHoldAmount(user?.id);
   const qc = useQueryClient();
@@ -111,7 +112,7 @@ function AccountsPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs text-white/75 uppercase tracking-wider">{DEMO_PROFILE.accountType}</div>
+              <div className="text-xs text-white/75 uppercase tracking-wider">{primary.account_type ?? DEMO_PROFILE.accountType}</div>
               <div className="mt-2 font-mono text-lg sm:text-2xl tracking-[0.2em] flex items-center gap-2 flex-wrap break-all">
                 {reveal ? primary.account_number : maskAccount(primary.account_number)}
                 <button onClick={() => setReveal(!reveal)} aria-label="Toggle account visibility">
@@ -142,21 +143,22 @@ function AccountsPage() {
 
       <Card title="Account Details">
         <Grid>
-          <Row label="Account Holder Name" value={DEMO_PROFILE.fullName} />
+          <Row label="Account Holder Name" value={savedProfile?.full_name ?? DEMO_PROFILE.fullName} />
           <Row label="Account Number" value={primary.account_number} mono />
-          <Row label="Customer ID" value={DEMO_PROFILE.customerId} mono />
-          <Row label="CIF Number" value={DEMO_PROFILE.cif} mono />
-          <Row label="IFSC Code" value={DEMO_PROFILE.ifsc} mono />
+          <Row label="Customer ID" value={savedProfile?.customer_id ?? DEMO_PROFILE.customerId} mono />
+          <Row label="CIF Number" value={savedProfile?.customer_id ?? DEMO_PROFILE.cif} mono />
+          <Row label="IFSC Code" value={primary.ifsc ?? DEMO_PROFILE.ifsc} mono />
           <Row label="MICR" value={DEMO_PROFILE.micr} mono />
-          <Row label="Branch Name" value={DEMO_PROFILE.branch} />
-          <Row label="Account Type" value={DEMO_PROFILE.accountType} />
+          <Row label="Branch Name" value={savedProfile?.branch ?? DEMO_PROFILE.branch} />
+          <Row label="Branch Address" value={savedProfile?.branch_address ?? "—"} />
+          <Row label="Account Type" value={primary.account_type ?? DEMO_PROFILE.accountType} />
           <Row label="Account Status" value={DEMO_PROFILE.accountStatus} accent="text-success" />
-          <Row label="Mobile Number" value={DEMO_PROFILE.mobile} />
-          <Row label="Email Address" value={DEMO_PROFILE.email} />
+          <Row label="Mobile Number" value={savedProfile?.mobile ?? DEMO_PROFILE.mobile} />
+          <Row label="Email Address" value={savedProfile?.email ?? DEMO_PROFILE.email} />
           <Row label="PAN Number" value={DEMO_PROFILE.pan} mono />
           <Row label="KYC Status" value={DEMO_PROFILE.kycStatus} accent="text-success" />
           <Row label="Nominee" value="Registered" accent="text-success" />
-          <Row label="Address" value={`${DEMO_PROFILE.address}, ${DEMO_PROFILE.city} ${DEMO_PROFILE.pinCode}`} />
+          <Row label="Address" value={savedProfile?.communication_address ?? `${DEMO_PROFILE.address}, ${DEMO_PROFILE.city} ${DEMO_PROFILE.pinCode}`} />
         </Grid>
       </Card>
 

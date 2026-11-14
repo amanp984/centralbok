@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactions, useTransactionsWithBalances } from "@/hooks/use-banking-data";
+import { useAccounts, useDemoProfile, useTransactions, useTransactionsWithBalances } from "@/hooks/use-banking-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DEMO_PROFILE, DEMO_LIMITS } from "@/lib/demo-user";
+import { DEMO_PROFILE, DEMO_LIMITS, DEMO_USER_ID } from "@/lib/demo-user";
 import { formatINR, formatDate, maskAccount } from "@/lib/banking";
 import {
   ShieldCheck, CheckCircle2, Eye, EyeOff, KeyRound, Plus, RefreshCw,
@@ -29,6 +29,7 @@ import {
   type UpiNarrationType,
 } from "@/lib/demo-transaction-builder";
 import { addDemoTransaction } from "@/lib/demo-transactions.functions";
+import { DemoAdminManagement } from "@/components/DemoAdminManagement";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Central Bank of India" }] }),
@@ -38,8 +39,10 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const { user } = useAuth();
   const { data: accounts, isLoading } = useAccounts(user?.id);
+  const { data: savedProfile } = useDemoProfile(user?.id);
   const { data: transactions } = useTransactions(user?.id, 500);
   const { data: computed } = useTransactionsWithBalances(user?.id);
+  const queryClient = useQueryClient();
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const profileClicks = useRef(0);
@@ -66,7 +69,7 @@ function SettingsPage() {
   };
 
   const handleProfileClick = () => {
-    if (adminUnlocked) return;
+    if (adminUnlocked || user?.id !== DEMO_USER_ID) return;
     profileClicks.current += 1;
     if (profileClickTimer.current) clearTimeout(profileClickTimer.current);
     profileClickTimer.current = setTimeout(() => {
@@ -96,13 +99,11 @@ function SettingsPage() {
         <TabsContent value="profile">
           <Card title="Profile Information">
             <Grid>
-              <Row label="Full Name" value={DEMO_PROFILE.fullName} />
-              <Row label="Mobile Number" value={DEMO_PROFILE.mobile} />
-              <Row label="Email" value={DEMO_PROFILE.email} />
-              <Row label="Address" value={DEMO_PROFILE.address} />
-              <Row label="City" value={DEMO_PROFILE.city} />
-              <Row label="State" value={DEMO_PROFILE.state} />
-              <Row label="PIN Code" value={DEMO_PROFILE.pinCode} />
+              <Row label="Full Name" value={savedProfile?.full_name ?? DEMO_PROFILE.fullName} />
+              <Row label="Mobile Number" value={savedProfile?.mobile ?? DEMO_PROFILE.mobile} />
+              <Row label="Email" value={savedProfile?.email ?? DEMO_PROFILE.email} />
+              <Row label="Address" value={savedProfile?.communication_address ?? DEMO_PROFILE.address} />
+              <Row label="Branch Address" value={savedProfile?.branch_address ?? "—"} />
             </Grid>
           </Card>
         </TabsContent>
@@ -121,13 +122,14 @@ function SettingsPage() {
         <TabsContent value="account">
           <Card title="Account Details">
             <Grid>
-              <Row label="Account Holder Name" value={DEMO_PROFILE.fullName} />
+              <Row label="Account Holder Name" value={savedProfile?.full_name ?? DEMO_PROFILE.fullName} />
               <Row label="Account Number" value={primary?.account_number ?? "—"} mono />
-              <Row label="IFSC" value={DEMO_PROFILE.ifsc} mono />
-              <Row label="Branch" value={DEMO_PROFILE.branch} />
-              <Row label="CIF" value={DEMO_PROFILE.cif} mono />
-              <Row label="Customer ID" value={DEMO_PROFILE.customerId} mono />
-              <Row label="Account Type" value={DEMO_PROFILE.accountType} />
+              <Row label="IFSC" value={primary?.ifsc ?? DEMO_PROFILE.ifsc} mono />
+              <Row label="Branch" value={savedProfile?.branch ?? DEMO_PROFILE.branch} />
+              <Row label="Branch Address" value={savedProfile?.branch_address ?? "—"} />
+              <Row label="CIF" value={savedProfile?.customer_id ?? DEMO_PROFILE.cif} mono />
+              <Row label="Customer ID" value={savedProfile?.customer_id ?? DEMO_PROFILE.customerId} mono />
+              <Row label="Account Type" value={primary?.account_type ?? DEMO_PROFILE.accountType} />
               <Row label="Account Status" value={DEMO_PROFILE.accountStatus} accent="text-success" />
               <Row label="PAN Number" value={DEMO_PROFILE.pan} mono />
             </Grid>
@@ -183,11 +185,14 @@ function SettingsPage() {
       </Tabs>
       {adminUnlocked && (
         <Dialog open={adminOpen} onOpenChange={setAdminOpen}>
-          <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+          <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5 text-primary" /> Demo Admin Panel</DialogTitle>
-              <DialogDescription>Simulated transaction management for the authenticated demo account.</DialogDescription>
+              <DialogDescription>Manage simulated account details and demo ledger entries for the authenticated demo account.</DialogDescription>
             </DialogHeader>
+            {user?.id === DEMO_USER_ID && <DemoAdminManagement userId={user.id} onChanged={() => {
+              void queryClient.invalidateQueries({ predicate: (query) => ["demo-profile", "accounts", "transactions"].includes(String(query.queryKey[0])) });
+            }} />}
             <DemoTransactionBuilder
               openingBalance={computed?.finalBalance ?? 0}
               onSaved={() => setAdminOpen(false)}

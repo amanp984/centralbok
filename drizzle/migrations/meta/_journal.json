@@ -8,6 +8,27 @@
       "when": 1792613878459,
       "tag": "0000_add_hold_amount_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794641597543,
+      "tag": "0001_demo_admin_management",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794642362631,
+      "tag": "0002_audit_demo_admin_mutations",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794642451902,
+      "tag": "0003_unique_demo_transaction_references",
+      "breakpoints": true
     }
   ]
 }

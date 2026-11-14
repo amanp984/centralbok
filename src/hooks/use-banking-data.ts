@@ -26,6 +26,7 @@ export type Transaction = {
   beneficiary_name: string | null;
   beneficiary_account: string | null;
   beneficiary_ifsc: string | null;
+  upi_id: string | null;
   created_at: string;
 };
 
@@ -46,6 +47,19 @@ export const qk = {
   transactions: (uid: string) => ["transactions", uid] as const,
   beneficiaries: (uid: string) => ["beneficiaries", uid] as const,
 };
+
+export function useDemoProfile(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["demo-profile", userId ?? ""] as const,
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
 
 export function useAccounts(userId: string | undefined) {
   return useQuery({
@@ -162,7 +176,7 @@ export function useBankingRealtime(userId: string | undefined) {
       qc.invalidateQueries({
         predicate: (q) => {
           const k = q.queryKey?.[0];
-          return k === "transactions" || k === "accounts" || k === "beneficiaries" || k === "statement" || k === "settings";
+          return k === "transactions" || k === "accounts" || k === "beneficiaries" || k === "statement" || k === "settings" || k === "demo-profile";
         },
       });
     };
@@ -172,6 +186,7 @@ export function useBankingRealtime(userId: string | undefined) {
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` }, invalidateAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "accounts", filter: `user_id=eq.${userId}` }, invalidateAll)
       .on("postgres_changes", { event: "*", schema: "public", table: "beneficiaries", filter: `user_id=eq.${userId}` }, invalidateAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${userId}` }, invalidateAll)
       .subscribe((status) => {
         const ok = status === "SUBSCRIBED";
         connectedRef.current = ok;

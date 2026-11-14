@@ -15,35 +15,25 @@ export const addDemoTransaction = createServerFn({ method: "POST" })
       throw new Response("Demo administration is not available for this account", { status: 403 });
     }
 
-    const { data: account, error: accountError } = await context.supabase
-      .from("accounts")
-      .select("id")
-      .eq("user_id", context.userId)
-      .eq("is_primary", true)
-      .limit(1)
-      .maybeSingle();
-
-    if (accountError) throw accountError;
-    if (!account) throw new Error("Primary demo account not found");
-
     const description = buildTransactionDescription(data);
-    const { data: transaction, error } = await context.supabase
-      .from("transactions")
-      .insert({
-        user_id: context.userId,
-        account_id: account.id,
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: result, error } = await supabaseAdmin.rpc("change_demo_transaction", {
+      p_user_id: context.userId,
+      p_action: "add",
+      p_transaction_id: "00000000-0000-0000-0000-000000000000",
+      p_transaction: {
         amount: data.amount,
         direction: directionForTransactionType(data.transactionType),
         mode: data.paymentMode === "Other" ? "OTHER" : data.paymentMode,
+        beneficiary_name: data.name.trim(),
+        upi_id: data.upiId.trim(),
+        beneficiary_account: data.accountNumber.trim() || (data.accountSuffix.trim() ? `XXXX${data.accountSuffix.trim()}` : ""),
+        beneficiary_ifsc: data.ifsc.trim().toUpperCase(),
+        reference: data.reference.trim(),
         description,
-        reference: data.reference,
-        beneficiary_name: data.name.trim() || null,
-        beneficiary_account: data.accountNumber.trim() || (data.accountSuffix.trim() ? `XXXX${data.accountSuffix.trim()}` : null),
-        beneficiary_ifsc: data.ifsc.trim().toUpperCase() || null,
-      })
-      .select("*")
-      .single();
-
+        created_at: new Date().toISOString(),
+      },
+    });
     if (error) throw error;
-    return transaction;
+    return result;
   });

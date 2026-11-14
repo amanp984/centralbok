@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep demo-admin account/profile and transaction mutations in authenticated server functions that verify the fixed demo user; this prevents the hidden Settings trigger from becoming an authorization bypass.
+- Store demo sign-in credentials as a server-side salted password hash and never return or log password values; profile email is display data and must not rotate the connected auth identity.
+- Reuse the existing accounts, profiles, and transactions records for demo administration; preserve canonical chronological balance calculation and audit every admin transaction change.

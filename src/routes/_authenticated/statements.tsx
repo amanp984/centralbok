@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAccounts, useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
+import { useAccounts, useDemoProfile, useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
 import { useNewIds } from "@/hooks/use-new-ids";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ function firstOfMonth() {
 function StatementsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
+  const { data: savedProfile } = useDemoProfile(user?.id);
   // Empty by default → show ALL transactions. Filters only apply once the
   // user picks a value.
   const [from, setFrom] = useState("");
@@ -98,11 +99,12 @@ function StatementsPage() {
   const expClosing = exportItems[0]?.computed_balance ?? expOpening;
 
   const meta = {
-    customerName: DEMO_PROFILE.fullName,
+    customerName: savedProfile?.full_name ?? DEMO_PROFILE.fullName,
     accountNumber: primary?.account_number ?? "",
+    accountType: primary?.account_type ?? DEMO_PROFILE.accountType,
     ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
-    cif: DEMO_PROFILE.cif,
-    branch: DEMO_PROFILE.branch,
+    cif: savedProfile?.customer_id ?? DEMO_PROFILE.cif,
+    branch: savedProfile?.branch ?? DEMO_PROFILE.branch,
     openingBalance: expOpening,
     closingBalance: expClosing,
     fromDate: exportRange.from,
