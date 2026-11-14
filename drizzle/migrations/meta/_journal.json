@@ -43,6 +43,13 @@
       "when": 1794677459283,
       "tag": "0005_add_demo_statement_disclosure_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794680062860,
+      "tag": "0006_preserve_demo_login_when_password_unchanged",
+      "breakpoints": true
     }
   ]
 }

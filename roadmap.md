@@ -7,5 +7,9 @@
 - [x] Implement protected complete statement disclosure editing with required demo and not-bank-issued wording, rendered once without appended text
 - [x] Keep the demo Admin Panel open after transaction saves and preserve the builder form
 - [x] Generate a PDF with complete demo disclosure and confirm the exact line appears once without appended wording
+- [x] Fix demo profile saves to use compatible 210,000-iteration PBKDF2-SHA256 hashing only when a new password is supplied
+- [x] Preserve existing demo login hashes during profile-only changes with atomic database saves
+- [x] Add focused tests for password hashing, verification, blank-password preservation, and username-change validation
+- [ ] Verify profile-save field scenarios against persisted database values — blocked: preview is signed out, so the protected Admin Panel cannot be exercised
 - [ ] Verify saved disclosure persistence after refresh — blocked: preview is signed out, so Admin Panel cannot be opened
 - [ ] Verify two consecutive transaction saves keep the Admin Panel open — blocked: preview redirects to login before Settings loads

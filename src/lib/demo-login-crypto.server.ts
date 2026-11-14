@@ -1,4 +1,9 @@
+import { pbkdf2Async } from "@noble/hashes/pbkdf2.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+
 const encoder = new TextEncoder();
+
+const DEMO_PASSWORD_ITERATIONS = 210_000;
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -14,18 +19,11 @@ function fromHex(hex: string): Uint8Array {
 
 export async function hashDemoPassword(password: string, saltHex?: string) {
   const salt = saltHex ? fromHex(saltHex) : crypto.getRandomValues(new Uint8Array(16));
-  const passwordBytes = encoder.encode(password);
-  const passwordBuffer = new ArrayBuffer(passwordBytes.byteLength);
-  new Uint8Array(passwordBuffer).set(passwordBytes);
-  const saltBuffer = new ArrayBuffer(salt.byteLength);
-  new Uint8Array(saltBuffer).set(salt);
-  const key = await crypto.subtle.importKey("raw", passwordBuffer, "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: saltBuffer, iterations: 210_000 },
-    key,
-    256,
-  );
-  return { salt: toHex(salt), hash: toHex(new Uint8Array(bits)) };
+  const derived = await pbkdf2Async(sha256, encoder.encode(password), salt, {
+    c: DEMO_PASSWORD_ITERATIONS,
+    dkLen: 32,
+  });
+  return { salt: toHex(salt), hash: toHex(derived) };
 }
 
 export async function verifyDemoPassword(password: string, saltHex: string, expectedHash: string) {
@@ -36,4 +34,32 @@ export async function verifyDemoPassword(password: string, saltHex: string, expe
     difference |= actual.hash.charCodeAt(index) ^ expectedHash.charCodeAt(index);
   }
   return difference === 0;
+}
+
+export type ExistingDemoLogin = { password_salt: string; password_hash: string };
+
+export async function prepareDemoLoginUpdate(input: {
+  username: string;
+  password: string;
+  existingLogin?: ExistingDemoLogin | null;
+  fallbackUsername?: string;
+}) {
+  if (input.password) {
+    const hashed = await hashDemoPassword(input.password);
+    return { username: input.username, passwordSalt: hashed.salt, passwordHash: hashed.hash };
+  }
+
+  if (input.existingLogin) {
+    return {
+      username: input.username,
+      passwordSalt: input.existingLogin.password_salt,
+      passwordHash: input.existingLogin.password_hash,
+    };
+  }
+
+  if (input.username !== input.fallbackUsername) {
+    throw new Error("Enter a new password to change the username before a saved demo password exists.");
+  }
+
+  return null;
 }

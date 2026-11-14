@@ -44,7 +44,7 @@ export const saveDemoAdminProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     assertDemoAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { hashDemoPassword } = await import("@/lib/demo-login-crypto.server");
+    const { prepareDemoLoginUpdate } = await import("@/lib/demo-login-crypto.server");
     const { data: oldLogin, error: loginReadError } = await supabaseAdmin
       .from("demo_login_config")
       .select("password_salt,password_hash")
@@ -67,28 +67,21 @@ export const saveDemoAdminProfile = createServerFn({ method: "POST" })
       ifsc: data.ifsc,
     };
 
-    let passwordSalt = oldLogin?.password_salt;
-    let passwordHash = oldLogin?.password_hash;
-    if (data.password) {
-      const hashed = await hashDemoPassword(data.password);
-      passwordSalt = hashed.salt;
-      passwordHash = hashed.hash;
-    } else if (!passwordSalt || !passwordHash) {
-      const existingPassword = process.env["DEMO_LOGIN_PASSWORD"];
-      if (!existingPassword) throw new Error("Enter a new demo password before saving these changes.");
-      const hashed = await hashDemoPassword(existingPassword);
-      passwordSalt = hashed.salt;
-      passwordHash = hashed.hash;
-    }
+    const loginUpdate = await prepareDemoLoginUpdate({
+      username: data.username,
+      password: data.password,
+      existingLogin: oldLogin,
+      fallbackUsername: process.env["DEMO_LOGIN_USERNAME"],
+    });
 
     const { error } = await supabaseAdmin.rpc("save_demo_admin_profile", {
       p_user_id: context.userId,
       p_profile: profileValues,
       p_account: accountValues,
       p_login: {
-      username: data.username,
-      password_salt: passwordSalt,
-      password_hash: passwordHash,
+        username: data.username,
+        password_salt: loginUpdate?.passwordSalt ?? null,
+        password_hash: loginUpdate?.passwordHash ?? null,
         password_changed: Boolean(data.password),
       },
     });
