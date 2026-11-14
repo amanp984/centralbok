@@ -148,6 +148,9 @@ function StatementsPage() {
           <p className="text-[11px] text-muted-foreground mt-3">
             Downloads contain exactly the {exportItems.length} transaction{exportItems.length === 1 ? "" : "s"} shown below ({exportRange.from} → {exportRange.to}).
           </p>
+          <p className="text-[11px] font-semibold text-muted-foreground mt-1">
+            Demo records only — not bank-issued or bank-verified statements.
+          </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
               <FileText className="w-4 h-4 mr-1" /> PDF

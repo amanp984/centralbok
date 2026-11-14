@@ -22,9 +22,11 @@ import {
   directionForTransactionType,
   paymentModes,
   transactionTypes,
+  upiNarrationTypes,
   type DemoTransactionInput,
   type PaymentMode,
   type TransactionType,
+  type UpiNarrationType,
 } from "@/lib/demo-transaction-builder";
 import { addDemoTransaction } from "@/lib/demo-transactions.functions";
 
@@ -200,6 +202,7 @@ function SettingsPage() {
 const initialBuilderState: DemoTransactionInput = {
   transactionType: "Credit",
   paymentMode: "UPI",
+  upiNarrationType: "standard",
   amount: 0,
   name: "",
   upiId: "",
@@ -229,6 +232,11 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
 
   const handleModeChange = (mode: PaymentMode) => {
     setForm((current) => ({ ...current, paymentMode: mode, upiId: mode === "UPI" ? current.upiId : "" }));
+    setErrors({});
+  };
+
+  const handleUpiNarrationChange = (upiNarrationType: UpiNarrationType) => {
+    setForm((current) => ({ ...current, upiNarrationType }));
     setErrors({});
   };
 
@@ -268,10 +276,10 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
   };
 
   const show = {
-    upi: form.paymentMode === "UPI",
-    suffix: form.paymentMode === "UPI" || form.paymentMode === "IMPS",
-    account: ["NEFT", "RTGS", "TFR"].includes(form.paymentMode),
-    ifsc: ["NEFT", "RTGS"].includes(form.paymentMode),
+    upiId: form.paymentMode === "UPI" && form.upiNarrationType === "standard",
+    accountSuffix: form.paymentMode === "IMPS",
+    account: ["NEFT", "RTGS", "TFR"].includes(form.paymentMode) || (form.paymentMode === "UPI" && form.upiNarrationType === "p2a_account"),
+    ifsc: ["NEFT", "RTGS"].includes(form.paymentMode) || (form.paymentMode === "UPI" && form.upiNarrationType === "p2a_account"),
     bank: form.paymentMode !== "UPI" || form.transactionType === "Refund",
   };
 
@@ -288,6 +296,13 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
             {paymentModes.map((mode) => <option key={mode}>{mode}</option>)}
           </select>
         </FieldLabel>
+        {form.paymentMode === "UPI" && <FieldLabel label="UPI narration type" error={errors.upiNarrationType}>
+          <select value={form.upiNarrationType} onChange={(event) => handleUpiNarrationChange(event.target.value as UpiNarrationType)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-1 focus:ring-ring">
+            {upiNarrationTypes.map((type) => <option key={type} value={type}>
+              {type === "standard" ? "UPI Debit / Credit" : type === "p2a_account" ? "P2A · Account + IFSC" : type === "p2a" ? "P2A · UPI Payment" : "P2P · Transfer"}
+            </option>)}
+          </select>
+        </FieldLabel>}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -297,13 +312,13 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
         <FieldLabel label="Name" required={form.paymentMode !== "Other" || form.transactionType === "Refund"} error={errors.name}>
           <Input value={form.name} maxLength={120} onChange={(event) => setField("name", event.target.value)} placeholder="Counterparty or merchant" />
         </FieldLabel>
-        {show.upi && <FieldLabel label="UPI ID" required error={errors.upiId}>
+        {show.upiId && <FieldLabel label="UPI ID" required error={errors.upiId}>
           <Input value={form.upiId} maxLength={120} onChange={(event) => setField("upiId", event.target.value)} placeholder="name@bank" />
         </FieldLabel>}
-        {show.suffix && <FieldLabel label="Account suffix" required error={errors.accountSuffix}>
+        {show.accountSuffix && <FieldLabel label="Account suffix" required error={errors.accountSuffix}>
           <Input inputMode="numeric" maxLength={4} value={form.accountSuffix} onChange={(event) => setField("accountSuffix", event.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="Last 4 digits" />
         </FieldLabel>}
-        {show.account && <FieldLabel label="Account number" required error={errors.accountNumber}>
+        {show.account && <FieldLabel label={form.paymentMode === "UPI" ? "Beneficiary account number" : "Account number"} required error={errors.accountNumber}>
           <Input inputMode="numeric" maxLength={18} value={form.accountNumber} onChange={(event) => setField("accountNumber", event.target.value.replace(/\D/g, "").slice(0, 18))} placeholder="9–18 digits" />
         </FieldLabel>}
         {show.ifsc && <FieldLabel label="IFSC" required error={errors.ifsc}>
@@ -312,8 +327,8 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
         <FieldLabel label={form.paymentMode === "UPI" ? "UTR / Reference number" : "Reference number"} required error={errors.reference}>
           <Input value={form.reference} maxLength={80} onChange={(event) => setField("reference", event.target.value)} placeholder="Transaction reference" />
         </FieldLabel>
-        {show.bank && <FieldLabel label="Bank / reference details" error={errors.bankDetails}>
-          <Input value={form.bankDetails} maxLength={160} onChange={(event) => setField("bankDetails", event.target.value)} placeholder="Optional bank or settlement note" />
+        {show.bank && <FieldLabel label={form.paymentMode === "NEFT" || form.paymentMode === "IMPS" ? "Bank reference" : "Bank / reference details"} error={errors.bankDetails}>
+          <Input value={form.bankDetails} maxLength={160} onChange={(event) => setField("bankDetails", event.target.value)} placeholder={form.paymentMode === "NEFT" || form.paymentMode === "IMPS" ? "Optional; UTR used if blank" : "Optional bank or settlement note"} />
         </FieldLabel>}
       </div>
 

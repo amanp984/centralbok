@@ -87,7 +87,7 @@ export function exportTransactionsCSV(transactions: TxLike[], filename = "statem
   const balanced = balanceRows(transactions, openingBalance);
   const { opening, closing } = windowBounds(balanced);
   assertBalanceIntegrity(balanced, opening, closing);
-  const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)"];
+  const headers = ["Date", "Reference", "Description", "Mode", "Direction", "Amount (INR)", "Balance (INR)", "Record Status"];
   const rows = balanced.map((t) => [
     formatDate(t.created_at),
     t.reference,
@@ -96,9 +96,10 @@ export function exportTransactionsCSV(transactions: TxLike[], filename = "statem
     t.direction.toUpperCase(),
     Number(t.amount).toFixed(2),
     Number(t.computed_balance).toFixed(2),
+    "DEMO RECORD",
   ]);
-  const summaryOpen = ["", "", "", "", "OPENING BALANCE", "", opening.toFixed(2)];
-  const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2)];
+  const summaryOpen = ["", "", "", "", "OPENING BALANCE", "", opening.toFixed(2), "DEMO — NOT BANK-ISSUED OR BANK-VERIFIED"];
+  const summary = ["", "", "", "", "CLOSING BALANCE", "", closing.toFixed(2), "DEMO — NOT BANK-ISSUED OR BANK-VERIFIED"];
   const csv = [headers, ...rows, summaryOpen, summary].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), filename);
 }
@@ -115,6 +116,7 @@ export function exportTransactionsExcel(transactions: TxLike[], filename = "stat
     Direction: t.direction.toUpperCase(),
     "Amount (INR)": Number(Number(t.amount).toFixed(2)),
     "Balance (INR)": Number(Number(t.computed_balance).toFixed(2)),
+    "Record Status": "DEMO RECORD — NOT BANK-ISSUED OR BANK-VERIFIED",
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -161,7 +163,9 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
 
   // Title
   doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...PRIMARY);
-  doc.text("STATEMENT OF ACCOUNT", pageW / 2, 44, { align: "center" });
+  doc.text("DEMO STATEMENT OF ACCOUNT", pageW / 2, 44, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...MUTED);
+  doc.text("DEMO RECORD - NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 49, { align: "center" });
 
   // Customer details + summary box
   const blockY = 54;
@@ -258,11 +262,14 @@ export function exportTransactionReceiptPDF(t: TxLike, meta: ExportMeta, filenam
   doc.setFontSize(16);
   doc.text("CENTRAL BANK OF INDIA", 14, 12);
   doc.setFontSize(10);
-  doc.text("Transaction Receipt", 14, 20);
+  doc.text("Demo Transaction Receipt", 14, 20);
 
   doc.setTextColor(31, 42, 68);
   doc.setFontSize(11);
-  let y = 44;
+  doc.setFontSize(8);
+  doc.text("DEMO RECORD - NOT BANK-ISSUED OR BANK-VERIFIED", 14, 34);
+  doc.setFontSize(11);
+  let y = 46;
   const row = (k: string, v: string) => { doc.setFont("helvetica","bold"); doc.text(k, 14, y); doc.setFont("helvetica","normal"); doc.text(v, 80, y); y += 8; };
   row("Status", t.direction === "debit" ? "DEBIT - SUCCESS" : "CREDIT - SUCCESS");
   row("Reference No.", t.reference);
@@ -277,7 +284,7 @@ export function exportTransactionReceiptPDF(t: TxLike, meta: ExportMeta, filenam
   row("Running Balance", formatRs(Number(t.computed_balance ?? t.running_balance ?? 0)));
 
   doc.setFontSize(8); doc.setTextColor(100);
-  doc.text("This is a computer-generated receipt and does not require a signature.", 14, doc.internal.pageSize.height - 10);
+  doc.text("Demo record only; not bank-issued or bank-verified.", 14, doc.internal.pageSize.height - 10);
   doc.save(filename);
 }
 
