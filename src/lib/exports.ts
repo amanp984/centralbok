@@ -162,11 +162,11 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.text("Email: central.bank@cbi.co.in", rightX, 20, { align: "right" });
   doc.text("Web: www.centralbankofindia.co.in", rightX, 26, { align: "right" });
 
-  // Title
-  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(...PRIMARY);
-  doc.text("DEMO STATEMENT OF ACCOUNT", pageW / 2, 44, { align: "center" });
-  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...MUTED);
-  doc.text("DEMO RECORD - NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 49, { align: "center" });
+  // Keep the disclosure in a dedicated line above the statement summary.
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...MUTED);
+  doc.text("DEMO STATEMENT OF ACCOUNT", pageW / 2, 39, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
+  doc.text("DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 44, { align: "center" });
 
   // Customer details + summary box
   const blockY = 54;
