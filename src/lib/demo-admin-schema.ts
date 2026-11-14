@@ -1,7 +1,16 @@
 import { z } from "zod";
 
 export const DEFAULT_DEMO_STATEMENT_TITLE = "DEMO STATEMENT OF ACCOUNT";
+export const DEFAULT_DEMO_STATEMENT_DISCLOSURE = "DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED";
 export const demoStatementTitleSchema = z.string().trim().min(1, "Enter a statement title").max(80, "Use 80 characters or fewer");
+export const demoStatementDisclosureSchema = z.string().trim().min(1, "A visible demo disclosure is required").max(160, "Use 160 characters or fewer");
+
+export function composeDemoStatementDisclosure(configuredText?: string) {
+  const customText = configuredText?.trim() || DEFAULT_DEMO_STATEMENT_DISCLOSURE;
+  return customText === DEFAULT_DEMO_STATEMENT_DISCLOSURE
+    ? customText
+    : `${customText} - ${DEFAULT_DEMO_STATEMENT_DISCLOSURE}`;
+}
 
 const optionalText = (max: number) => z.string().trim().max(max);
 

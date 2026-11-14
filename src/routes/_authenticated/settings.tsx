@@ -185,7 +185,7 @@ function SettingsPage() {
       </Tabs>
       {adminUnlocked && (
         <Dialog open={adminOpen} onOpenChange={setAdminOpen}>
-          <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
+          <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto" onEscapeKeyDown={(event) => event.preventDefault()} onInteractOutside={(event) => event.preventDefault()}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5 text-primary" /> Demo Admin Panel</DialogTitle>
               <DialogDescription>Manage simulated account details and demo ledger entries for the authenticated demo account.</DialogDescription>
@@ -193,10 +193,7 @@ function SettingsPage() {
             {user?.id === DEMO_USER_ID && <DemoAdminManagement userId={user.id} onChanged={() => {
               void queryClient.invalidateQueries({ predicate: (query) => ["demo-profile", "accounts", "transactions"].includes(String(query.queryKey[0])) });
             }} />}
-            <DemoTransactionBuilder
-              openingBalance={computed?.finalBalance ?? 0}
-              onSaved={() => setAdminOpen(false)}
-            />
+            <DemoTransactionBuilder openingBalance={computed?.finalBalance ?? 0} />
           </DialogContent>
         </Dialog>
       )}
@@ -218,7 +215,7 @@ const initialBuilderState: DemoTransactionInput = {
   bankDetails: "",
 };
 
-function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: number; onSaved: () => void }) {
+function DemoTransactionBuilder({ openingBalance }: { openingBalance: number }) {
   const addTransaction = useServerFn(addDemoTransaction);
   const queryClient = useQueryClient();
   const [form, setForm] = useState<DemoTransactionInput>(initialBuilderState);
@@ -270,9 +267,6 @@ function DemoTransactionBuilder({ openingBalance, onSaved }: { openingBalance: n
         predicate: (query) => ["transactions", "accounts", "statement"].includes(String(query.queryKey[0])),
       });
       toast.success("Demo transaction added", { description: "Dashboard, statements and exports will use the saved narration." });
-      setForm(initialBuilderState);
-      setErrors({});
-      onSaved();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to add demo transaction");
     } finally {

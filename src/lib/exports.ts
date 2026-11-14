@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
 import { formatDate, computeRunningBalances } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
-import { DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
+import { composeDemoStatementDisclosure, DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
 
 type ExportMeta = {
   customerName: string;
@@ -14,6 +14,7 @@ type ExportMeta = {
   cif?: string;
   branch?: string;
   statementTitle?: string;
+  statementDisclosureText?: string;
   openingBalance?: number;
   closingBalance?: number;
   fromDate?: string;
@@ -80,6 +81,7 @@ const sanitize = (s: string) =>
   String(s ?? "")
     .replace(/₹/g, "Rs.")
     .replace(/[→➔➜]/g, "->")
+    .replace(/[\u2013\u2014]/g, "-")
     .replace(/[·•]/g, "-")
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
@@ -164,17 +166,19 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.text("Email: central.bank@cbi.co.in", rightX, 20, { align: "right" });
   doc.text("Web: www.centralbankofindia.co.in", rightX, 26, { align: "right" });
 
-  // Keep the editable title and fixed disclosure on separate, readable lines.
+  // Keep the editable title and disclosure on separate, readable lines.
   const title = sanitize(meta.statementTitle?.trim() || DEFAULT_DEMO_STATEMENT_TITLE);
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...PRIMARY);
   const titleLines = doc.splitTextToSize(title, pageW - M * 2);
   const titleStartY = 39 - (titleLines.length - 1) * 2.5;
   doc.text(titleLines, pageW / 2, titleStartY, { align: "center" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text("DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 44 + (titleLines.length - 1) * 5, { align: "center" });
+  const disclosure = sanitize(composeDemoStatementDisclosure(meta.statementDisclosureText));
+  const disclosureLines = doc.splitTextToSize(disclosure, pageW - M * 2);
+  doc.text(disclosureLines, pageW / 2, 44 + (titleLines.length - 1) * 5, { align: "center" });
 
   // Customer details + summary box
-  const blockY = 54 + (titleLines.length - 1) * 5;
+  const blockY = 54 + (titleLines.length - 1) * 5 + Math.max(0, disclosureLines.length - 1) * 4.5;
   doc.setTextColor(...TEXT);
   doc.setFontSize(9.5);
   const details: Array<[string, string]> = [

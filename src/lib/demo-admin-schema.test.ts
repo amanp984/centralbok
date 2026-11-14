@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+import { composeDemoStatementDisclosure, DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
 
 const validTransaction = {
   action: "add" as const,
@@ -19,6 +19,15 @@ const validTransaction = {
 describe("demo admin validation", () => {
   it("uses the requested statement title by default", () => {
     assert.equal(DEFAULT_DEMO_STATEMENT_TITLE, "DEMO STATEMENT OF ACCOUNT");
+  });
+
+  it("requires a visible statement disclosure and applies the requested default", () => {
+    assert.equal(DEFAULT_DEMO_STATEMENT_DISCLOSURE, "DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED");
+    assert.equal(demoStatementDisclosureSchema.parse("  SIMULATED RECORD — NOT A BANK STATEMENT  "), "SIMULATED RECORD — NOT A BANK STATEMENT");
+    assert.equal(demoStatementDisclosureSchema.safeParse("   ").success, false);
+    assert.equal(demoStatementDisclosureSchema.safeParse("x".repeat(161)).success, false);
+    assert.equal(composeDemoStatementDisclosure("SIMULATED RECORD - FOR TESTING ONLY"), `SIMULATED RECORD - FOR TESTING ONLY - ${DEFAULT_DEMO_STATEMENT_DISCLOSURE}`);
+    assert.equal(composeDemoStatementDisclosure("   "), DEFAULT_DEMO_STATEMENT_DISCLOSURE);
   });
 
   it("accepts a trimmed statement title of up to 80 characters and rejects blank or longer values", () => {

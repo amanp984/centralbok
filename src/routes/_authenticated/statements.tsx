@@ -16,7 +16,7 @@ import { formatINR, formatDate, maskAccount } from "@/lib/banking";
 import { exportTransactionsCSV, exportTransactionsExcel, exportTransactionsPDF } from "@/lib/exports";
 import { DEMO_PROFILE } from "@/lib/demo-user";
 import { DEMO_USER_ID } from "@/lib/demo-user";
-import { DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
 import { getDemoStatementAppearance } from "@/lib/demo-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/statements")({
@@ -117,6 +117,7 @@ function StatementsPage() {
     cif: savedProfile?.customer_id ?? DEMO_PROFILE.cif,
     branch: savedProfile?.branch ?? DEMO_PROFILE.branch,
     statementTitle: savedAppearance?.title ?? DEFAULT_DEMO_STATEMENT_TITLE,
+    statementDisclosureText: savedAppearance?.disclosureText ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE,
     openingBalance: expOpening,
     closingBalance: expClosing,
     fromDate: exportRange.from,

@@ -261,6 +261,7 @@ export type Database = {
           notify_push: boolean
           notify_sms: boolean
           phone: string | null
+          statement_disclosure_text: string
           statement_title: string
           theme: string
           two_factor_enabled: boolean
@@ -280,6 +281,7 @@ export type Database = {
           notify_push?: boolean
           notify_sms?: boolean
           phone?: string | null
+          statement_disclosure_text?: string
           statement_title?: string
           theme?: string
           two_factor_enabled?: boolean
@@ -299,6 +301,7 @@ export type Database = {
           notify_push?: boolean
           notify_sms?: boolean
           phone?: string | null
+          statement_disclosure_text?: string
           statement_title?: string
           theme?: string
           two_factor_enabled?: boolean

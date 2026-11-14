@@ -36,6 +36,13 @@
       "when": 1794676402918,
       "tag": "0004_add_demo_statement_title",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794677459283,
+      "tag": "0005_add_demo_statement_disclosure_setting",
+      "breakpoints": true
     }
   ]
 }
