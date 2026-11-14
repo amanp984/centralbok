@@ -1,4 +1,4 @@
 ## Roadmap
-- [ ] Update the shared demo customer profile and database rows
-- [ ] Remove stale customer values from active source and demo data
-- [ ] Verify login, account masking, customer pages, and export metadata
+- [ ] Add protected demo Account & Profile Management to the existing admin panel
+- [ ] Add protected demo transaction search, filters, and confirmed CRUD with audit history
+- [ ] Preserve demo-only labeling and canonical balance/realtime behavior; validate relevant flows
