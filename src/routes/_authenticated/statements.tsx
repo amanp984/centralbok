@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Download, FileText, FileSpreadsheet, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccounts, useDemoProfile, useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
@@ -13,6 +15,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatINR, formatDate, maskAccount } from "@/lib/banking";
 import { exportTransactionsCSV, exportTransactionsExcel, exportTransactionsPDF } from "@/lib/exports";
 import { DEMO_PROFILE } from "@/lib/demo-user";
+import { DEMO_USER_ID } from "@/lib/demo-user";
+import { DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
+import { getDemoStatementAppearance } from "@/lib/demo-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/statements")({
   head: () => ({ meta: [{ title: "Statements — Central Bank of India" }] }),
@@ -29,6 +34,12 @@ function StatementsPage() {
   const { user } = useAuth();
   const { data: accounts } = useAccounts(user?.id);
   const { data: savedProfile } = useDemoProfile(user?.id);
+  const fetchStatementAppearance = useServerFn(getDemoStatementAppearance);
+  const { data: savedAppearance } = useQuery({
+    queryKey: ["demo-statement-appearance", user?.id ?? ""],
+    enabled: user?.id === DEMO_USER_ID,
+    queryFn: () => fetchStatementAppearance(),
+  });
   // Empty by default → show ALL transactions. Filters only apply once the
   // user picks a value.
   const [from, setFrom] = useState("");
@@ -105,6 +116,7 @@ function StatementsPage() {
     ifsc: primary?.ifsc ?? DEMO_PROFILE.ifsc,
     cif: savedProfile?.customer_id ?? DEMO_PROFILE.cif,
     branch: savedProfile?.branch ?? DEMO_PROFILE.branch,
+    statementTitle: savedAppearance?.title ?? DEFAULT_DEMO_STATEMENT_TITLE,
     openingBalance: expOpening,
     closingBalance: expClosing,
     fromDate: exportRange.from,

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { DEMO_PROFILE, DEMO_USER_ID } from "@/lib/demo-user";
-import { demoProfileUpdateSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+import { demoProfileUpdateSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
 
 function assertDemoAdmin(userId: string) {
   if (userId !== DEMO_USER_ID) {
@@ -123,4 +123,31 @@ export const changeDemoTransaction = createServerFn({ method: "POST" })
     if (error) throw error;
     const resultRecord = result && typeof result === "object" ? result as { id?: string } : {};
     return { ok: true as const, id: resultRecord.id ?? data.id ?? "" };
+  });
+
+export const getDemoStatementAppearance = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    assertDemoAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("user_settings")
+      .select("statement_title")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw error;
+    return { title: data?.statement_title ?? "DEMO STATEMENT OF ACCOUNT" };
+  });
+
+export const saveDemoStatementTitle = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => demoStatementTitleSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertDemoAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("user_settings")
+      .upsert({ user_id: context.userId, statement_title: data }, { onConflict: "user_id" });
+    if (error) throw error;
+    return { ok: true as const, title: data };
   });

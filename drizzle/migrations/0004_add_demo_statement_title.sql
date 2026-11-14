@@ -1,0 +1,2 @@
+ALTER TABLE public.user_settings ADD COLUMN statement_title text NOT NULL DEFAULT 'DEMO STATEMENT OF ACCOUNT';
+COMMENT ON COLUMN public.user_settings.statement_title IS 'DEMO statement title configured by the authorized demo administrator; the separate simulated-record disclosure is permanent.';

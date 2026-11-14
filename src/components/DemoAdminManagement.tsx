@@ -12,8 +12,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
 import { formatDate, formatINR, maskAccount } from "@/lib/banking";
-import { demoProfileUpdateSchema, demoTransactionChangeSchema, type DemoProfileUpdate } from "@/lib/demo-admin-schema";
-import { changeDemoTransaction, getDemoAdminProfile, saveDemoAdminProfile } from "@/lib/demo-admin.functions";
+import { DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementTitleSchema, demoTransactionChangeSchema, type DemoProfileUpdate } from "@/lib/demo-admin-schema";
+import { changeDemoTransaction, getDemoAdminProfile, getDemoStatementAppearance, saveDemoAdminProfile, saveDemoStatementTitle } from "@/lib/demo-admin.functions";
 import { toast } from "sonner";
 
 type Props = { userId: string; onChanged: () => void };
@@ -49,12 +49,19 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
   const getProfile = useServerFn(getDemoAdminProfile);
   const saveProfile = useServerFn(saveDemoAdminProfile);
   const changeTransaction = useServerFn(changeDemoTransaction);
+  const getAppearance = useServerFn(getDemoStatementAppearance);
+  const saveStatementTitle = useServerFn(saveDemoStatementTitle);
   const { data: txData } = useTransactionsWithBalances(userId);
   const { data: savedProfile, isLoading: profileLoading } = useQuery({
     queryKey: ["demo-admin-profile", userId],
     queryFn: () => getProfile(),
   });
+  const { data: savedAppearance, isLoading: appearanceLoading } = useQuery({
+    queryKey: ["demo-statement-appearance", userId],
+    queryFn: () => getAppearance(),
+  });
   const [form, setForm] = useState<ProfileForm>(blankProfile);
+  const [statementTitle, setStatementTitle] = useState(DEFAULT_DEMO_STATEMENT_TITLE);
   const [profileConfirmOpen, setProfileConfirmOpen] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
@@ -69,6 +76,7 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
   const [transactionConfirmOpen, setTransactionConfirmOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"add" | "update" | "delete" | null>(null);
   const [transactionSaving, setTransactionSaving] = useState(false);
+  const [statementTitleSaving, setStatementTitleSaving] = useState(false);
 
   useEffect(() => {
     if (savedProfile && !profileLoaded.current) {
@@ -76,6 +84,10 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
       setForm(profileFrom(savedProfile));
     }
   }, [savedProfile]);
+
+  useEffect(() => {
+    if (savedAppearance) setStatementTitle(savedAppearance.title);
+  }, [savedAppearance]);
 
   const transactions = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -132,6 +144,26 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
       toast.error(error instanceof Error ? error.message : "Unable to save demo profile.");
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const submitStatementTitle = async () => {
+    const parsed = demoStatementTitleSchema.safeParse(statementTitle);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Enter a valid statement title.");
+      return;
+    }
+    setStatementTitleSaving(true);
+    try {
+      const result = await saveStatementTitle({ data: parsed.data });
+      setStatementTitle(result.title);
+      await queryClient.invalidateQueries({ queryKey: ["demo-statement-appearance", userId] });
+      toast.success("Statement title saved.");
+      onChanged();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save the statement title.");
+    } finally {
+      setStatementTitleSaving(false);
     }
   };
 
@@ -206,9 +238,10 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
   return (
     <>
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid h-auto w-full grid-cols-2">
+        <TabsList className="grid h-auto w-full grid-cols-1 sm:grid-cols-3">
           <TabsTrigger value="profile">Account &amp; Profile Management</TabsTrigger>
           <TabsTrigger value="transactions">Manage Transactions</TabsTrigger>
+          <TabsTrigger value="appearance">Statement Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="profile" className="space-y-4 pt-3">
           <div className="flex items-start gap-2 border-b border-border pb-3 text-xs text-muted-foreground">
@@ -234,6 +267,25 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
             <FormField label="Residential / communication address" error={profileErrors.communicationAddress} className="sm:col-span-2"><Textarea value={form.communicationAddress} onChange={(e) => setProfileField("communicationAddress", e.target.value)} /></FormField>
           </div>
           <div className="flex justify-end"><Button onClick={requestProfileSave} disabled={profileSaving || profileLoading}>{profileSaving ? "Saving…" : "Save profile"}</Button></div>
+        </TabsContent>
+        <TabsContent value="appearance" className="space-y-4 pt-3">
+          <div className="flex items-start gap-2 border-b border-border pb-3 text-xs text-muted-foreground">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p>The simulated-record disclosure remains visible on every PDF statement and cannot be changed here.</p>
+          </div>
+          {appearanceLoading ? <p className="text-sm text-muted-foreground">Loading saved appearance…</p> : null}
+          <FormField label="Statement Title">
+            <Input maxLength={80} value={statementTitle} onChange={(event) => setStatementTitle(event.target.value)} placeholder={DEFAULT_DEMO_STATEMENT_TITLE} />
+          </FormField>
+          <div className="border-t border-border pt-3">
+            <p className="text-center text-sm font-bold text-primary">{statementTitle.trim() || DEFAULT_DEMO_STATEMENT_TITLE}</p>
+            <p className="mt-1 text-center text-xs text-muted-foreground">DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED</p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => void submitStatementTitle()} disabled={statementTitleSaving || appearanceLoading}>
+              {statementTitleSaving ? "Saving…" : "Save statement title"}
+            </Button>
+          </div>
         </TabsContent>
         <TabsContent value="transactions" className="space-y-4 pt-3">
           <div className="flex items-center justify-between gap-3">

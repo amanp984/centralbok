@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
 import { formatDate, computeRunningBalances } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
+import { DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
 
 type ExportMeta = {
   customerName: string;
@@ -12,6 +13,7 @@ type ExportMeta = {
   ifsc: string;
   cif?: string;
   branch?: string;
+  statementTitle?: string;
   openingBalance?: number;
   closingBalance?: number;
   fromDate?: string;
@@ -162,14 +164,17 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   doc.text("Email: central.bank@cbi.co.in", rightX, 20, { align: "right" });
   doc.text("Web: www.centralbankofindia.co.in", rightX, 26, { align: "right" });
 
-  // Keep the disclosure in a dedicated line above the statement summary.
-  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...MUTED);
-  doc.text("DEMO STATEMENT OF ACCOUNT", pageW / 2, 39, { align: "center" });
+  // Keep the editable title and fixed disclosure on separate, readable lines.
+  const title = sanitize(meta.statementTitle?.trim() || DEFAULT_DEMO_STATEMENT_TITLE);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...PRIMARY);
+  const titleLines = doc.splitTextToSize(title, pageW - M * 2);
+  const titleStartY = 39 - (titleLines.length - 1) * 2.5;
+  doc.text(titleLines, pageW / 2, titleStartY, { align: "center" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  doc.text("DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 44, { align: "center" });
+  doc.text("DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED", pageW / 2, 44 + (titleLines.length - 1) * 5, { align: "center" });
 
   // Customer details + summary box
-  const blockY = 54;
+  const blockY = 54 + (titleLines.length - 1) * 5;
   doc.setTextColor(...TEXT);
   doc.setFontSize(9.5);
   const details: Array<[string, string]> = [

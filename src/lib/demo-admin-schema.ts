@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const DEFAULT_DEMO_STATEMENT_TITLE = "DEMO STATEMENT OF ACCOUNT";
+export const demoStatementTitleSchema = z.string().trim().min(1, "Enter a statement title").max(80, "Use 80 characters or fewer");
+
 const optionalText = (max: number) => z.string().trim().max(max);
 
 export const demoProfileUpdateSchema = z.object({

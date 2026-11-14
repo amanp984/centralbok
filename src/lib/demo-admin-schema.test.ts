@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { demoProfileUpdateSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
 
 const validTransaction = {
   action: "add" as const,
@@ -17,6 +17,16 @@ const validTransaction = {
 };
 
 describe("demo admin validation", () => {
+  it("uses the requested statement title by default", () => {
+    assert.equal(DEFAULT_DEMO_STATEMENT_TITLE, "DEMO STATEMENT OF ACCOUNT");
+  });
+
+  it("accepts a trimmed statement title of up to 80 characters and rejects blank or longer values", () => {
+    assert.equal(demoStatementTitleSchema.parse("  Monthly Demo Statement  "), "Monthly Demo Statement");
+    assert.equal(demoStatementTitleSchema.safeParse(" ").success, false);
+    assert.equal(demoStatementTitleSchema.safeParse("x".repeat(81)).success, false);
+  });
+
   it("accepts a valid demo profile and an eight-character password update", () => {
     const result = demoProfileUpdateSchema.safeParse({
       fullName: "Demo User",
