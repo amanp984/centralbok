@@ -12,4 +12,4 @@
 - Keep demo-admin account/profile and transaction mutations in authenticated server functions that verify the fixed demo user; this prevents the hidden Settings trigger from becoming an authorization bypass.
 - Store demo sign-in credentials as a server-side salted password hash and never return or log password values; profile email is display data and must not rotate the connected auth identity.
 - Reuse the existing accounts, profiles, and transactions records for demo administration; preserve canonical chronological balance calculation and audit every admin transaction change.
-- Store editable demo statement titles and disclosure wording in the existing user settings record, enforce access in authenticated fixed-demo-user server functions, and always append the immutable demo/not-bank-issued notice to PDF exports.
+- Store editable demo statement titles and complete disclosure wording in the existing user settings record; enforce fixed-demo-user access and validate that saved wording retains the demo/not-bank-issued/not-bank-verified notice, without appending extra PDF text.

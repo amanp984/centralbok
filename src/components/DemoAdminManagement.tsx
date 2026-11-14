@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTransactionsWithBalances, type TransactionWithBalance } from "@/hooks/use-banking-data";
 import { formatDate, formatINR, maskAccount } from "@/lib/banking";
-import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema, type DemoProfileUpdate } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema, resolveDemoStatementDisclosure, type DemoProfileUpdate } from "@/lib/demo-admin-schema";
 import { changeDemoTransaction, getDemoAdminProfile, getDemoStatementAppearance, saveDemoAdminProfile, saveDemoStatementDisclosure, saveDemoStatementTitle } from "@/lib/demo-admin.functions";
 import { toast } from "sonner";
 
@@ -296,7 +296,7 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
         <TabsContent value="appearance" className="space-y-4 pt-3">
           <div className="flex items-start gap-2 border-b border-border pb-3 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            <p>Your wording is saved with each PDF. The required demo and not-bank-issued notice is always included and cannot be removed.</p>
+            <p>The complete wording must identify this as a demo and state that it is not bank-issued or bank-verified.</p>
           </div>
           {appearanceLoading ? <p className="text-sm text-muted-foreground">Loading saved appearance…</p> : null}
           <FormField label="Statement Title">
@@ -304,8 +304,7 @@ export function DemoAdminManagement({ userId, onChanged }: Props) {
           </FormField>
           <div className="border-t border-border pt-3">
             <p className="text-center text-sm font-bold text-primary">{statementTitle.trim() || DEFAULT_DEMO_STATEMENT_TITLE}</p>
-            <p className="mt-1 text-center text-xs text-muted-foreground">{statementDisclosure.trim() || DEFAULT_DEMO_STATEMENT_DISCLOSURE}</p>
-            {statementDisclosure.trim() !== DEFAULT_DEMO_STATEMENT_DISCLOSURE && <p className="text-center text-xs text-muted-foreground">{DEFAULT_DEMO_STATEMENT_DISCLOSURE}</p>}
+            <p className="mt-1 text-center text-xs text-muted-foreground">{resolveDemoStatementDisclosure(statementDisclosure)}</p>
           </div>
           <div className="flex justify-end">
             <Button onClick={() => void submitStatementTitle()} disabled={statementAppearanceSaving || appearanceLoading}>

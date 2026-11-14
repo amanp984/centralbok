@@ -4,7 +4,8 @@
 - [x] Add protected demo Account & Profile Management to the existing admin panel
 - [x] Add protected demo transaction search, filters, and confirmed CRUD with audit history
 - [x] Preserve demo-only labeling and canonical balance/realtime behavior
-- [x] Implement protected editable statement disclosure text and keep the required fixed notice visible in PDF exports
+- [x] Implement protected complete statement disclosure editing with required demo and not-bank-issued wording, rendered once without appended text
 - [x] Keep the demo Admin Panel open after transaction saves and preserve the builder form
-- [ ] Verify disclosure edit persistence after refresh and inspect a generated PDF — blocked: preview redirects to login before Settings loads
+- [x] Generate a PDF with complete demo disclosure and confirm the exact line appears once without appended wording
+- [ ] Verify saved disclosure persistence after refresh — blocked: preview is signed out, so Admin Panel cannot be opened
 - [ ] Verify two consecutive transaction saves keep the Admin Panel open — blocked: preview redirects to login before Settings loads

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { DEMO_PROFILE, DEMO_USER_ID } from "@/lib/demo-user";
-import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema, resolveDemoStatementDisclosure } from "@/lib/demo-admin-schema";
 
 function assertDemoAdmin(userId: string) {
   if (userId !== DEMO_USER_ID) {
@@ -138,7 +138,7 @@ export const getDemoStatementAppearance = createServerFn({ method: "GET" })
     if (error) throw error;
     return {
       title: data?.statement_title ?? "DEMO STATEMENT OF ACCOUNT",
-      disclosureText: data?.statement_disclosure_text ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE,
+      disclosureText: resolveDemoStatementDisclosure(data?.statement_disclosure_text ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE),
     };
   });
 

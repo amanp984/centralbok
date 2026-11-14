@@ -3,13 +3,22 @@ import { z } from "zod";
 export const DEFAULT_DEMO_STATEMENT_TITLE = "DEMO STATEMENT OF ACCOUNT";
 export const DEFAULT_DEMO_STATEMENT_DISCLOSURE = "DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED";
 export const demoStatementTitleSchema = z.string().trim().min(1, "Enter a statement title").max(80, "Use 80 characters or fewer");
-export const demoStatementDisclosureSchema = z.string().trim().min(1, "A visible demo disclosure is required").max(160, "Use 160 characters or fewer");
+export const demoStatementDisclosureSchema = z
+  .string()
+  .trim()
+  .min(1, "A visible demo disclosure is required")
+  .max(160, "Use 160 characters or fewer")
+  .refine((text) => {
+    const normalized = text.toLowerCase();
+    return normalized.includes("demo")
+      && /\bnot\s+bank[-\s]issued\b/.test(normalized)
+      && (/\bnot\s+bank[-\s]verified\b/.test(normalized) || /\bor\s+bank[-\s]verified\b/.test(normalized));
+  }, "Include that this is a demo and is not bank-issued or bank-verified");
 
-export function composeDemoStatementDisclosure(configuredText?: string) {
-  const customText = configuredText?.trim() || DEFAULT_DEMO_STATEMENT_DISCLOSURE;
-  return customText === DEFAULT_DEMO_STATEMENT_DISCLOSURE
-    ? customText
-    : `${customText} - ${DEFAULT_DEMO_STATEMENT_DISCLOSURE}`;
+export function resolveDemoStatementDisclosure(configuredText?: string) {
+  const candidate = configuredText ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE;
+  const parsed = demoStatementDisclosureSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : DEFAULT_DEMO_STATEMENT_DISCLOSURE;
 }
 
 const optionalText = (max: number) => z.string().trim().max(max);

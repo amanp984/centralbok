@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { composeDemoStatementDisclosure, DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, demoProfileUpdateSchema, demoStatementDisclosureSchema, demoStatementTitleSchema, demoTransactionChangeSchema, resolveDemoStatementDisclosure } from "@/lib/demo-admin-schema";
+import { buildTransactionsPDF } from "@/lib/exports";
 
 const validTransaction = {
   action: "add" as const,
@@ -23,11 +24,26 @@ describe("demo admin validation", () => {
 
   it("requires a visible statement disclosure and applies the requested default", () => {
     assert.equal(DEFAULT_DEMO_STATEMENT_DISCLOSURE, "DEMO RECORD – NOT BANK-ISSUED OR BANK-VERIFIED");
-    assert.equal(demoStatementDisclosureSchema.parse("  SIMULATED RECORD — NOT A BANK STATEMENT  "), "SIMULATED RECORD — NOT A BANK STATEMENT");
+    const completeText = "SIMULATED DEMO STATEMENT - NOT BANK-ISSUED OR BANK-VERIFIED";
+    assert.equal(demoStatementDisclosureSchema.parse(`  ${completeText}  `), completeText);
     assert.equal(demoStatementDisclosureSchema.safeParse("   ").success, false);
     assert.equal(demoStatementDisclosureSchema.safeParse("x".repeat(161)).success, false);
-    assert.equal(composeDemoStatementDisclosure("SIMULATED RECORD - FOR TESTING ONLY"), `SIMULATED RECORD - FOR TESTING ONLY - ${DEFAULT_DEMO_STATEMENT_DISCLOSURE}`);
-    assert.equal(composeDemoStatementDisclosure("   "), DEFAULT_DEMO_STATEMENT_DISCLOSURE);
+    assert.equal(demoStatementDisclosureSchema.safeParse("SIMULATED RECORD - FOR TESTING ONLY").success, false);
+    assert.equal(resolveDemoStatementDisclosure(completeText), completeText);
+    assert.equal(resolveDemoStatementDisclosure(""), DEFAULT_DEMO_STATEMENT_DISCLOSURE);
+  });
+
+  it("writes the complete saved disclosure exactly once in the generated PDF", async () => {
+    const disclosure = "SIMULATED DEMO STATEMENT - NOT BANK-ISSUED OR BANK-VERIFIED";
+    const pdf = await buildTransactionsPDF([], {
+      customerName: "Demo User",
+      accountNumber: "",
+      ifsc: "",
+      statementDisclosureText: disclosure,
+    });
+    const output = pdf.internal.pages.flat().join("\n");
+    assert.equal(output.match(/SIMULATED DEMO STATEMENT/g)?.length, 1);
+    assert.equal(output.includes(`${disclosure} - DEMO`), false);
   });
 
   it("accepts a trimmed statement title of up to 80 characters and rejects blank or longer values", () => {

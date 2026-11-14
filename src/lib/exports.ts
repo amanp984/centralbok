@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import type { Transaction } from "@/hooks/use-banking-data";
 import { formatDate, computeRunningBalances } from "./banking";
 import logoAsset from "@/assets/brand-logo.png.asset.json";
-import { composeDemoStatementDisclosure, DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
+import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE, resolveDemoStatementDisclosure } from "@/lib/demo-admin-schema";
 
 type ExportMeta = {
   customerName: string;
@@ -145,7 +145,7 @@ async function loadLogoDataUrl(): Promise<string | null> {
   }
 }
 
-export async function exportTransactionsPDF(transactions: TxLike[], meta: ExportMeta, filename = "statement.pdf") {
+export async function buildTransactionsPDF(transactions: TxLike[], meta: ExportMeta) {
   const balanced = balanceRows(transactions, meta.openingBalance ?? 0);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const PRIMARY: [number, number, number] = [11, 77, 162];
@@ -173,7 +173,7 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
   const titleStartY = 39 - (titleLines.length - 1) * 2.5;
   doc.text(titleLines, pageW / 2, titleStartY, { align: "center" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUTED);
-  const disclosure = sanitize(composeDemoStatementDisclosure(meta.statementDisclosureText));
+  const disclosure = resolveDemoStatementDisclosure(meta.statementDisclosureText ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE);
   const disclosureLines = doc.splitTextToSize(disclosure, pageW - M * 2);
   doc.text(disclosureLines, pageW / 2, 44 + (titleLines.length - 1) * 5, { align: "center" });
 
@@ -261,6 +261,11 @@ export async function exportTransactionsPDF(transactions: TxLike[], meta: Export
     },
   });
 
+  return doc;
+}
+
+export async function exportTransactionsPDF(transactions: TxLike[], meta: ExportMeta, filename = "statement.pdf") {
+  const doc = await buildTransactionsPDF(transactions, meta);
   doc.save(filename);
 }
 

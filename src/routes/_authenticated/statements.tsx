@@ -18,6 +18,7 @@ import { DEMO_PROFILE } from "@/lib/demo-user";
 import { DEMO_USER_ID } from "@/lib/demo-user";
 import { DEFAULT_DEMO_STATEMENT_DISCLOSURE, DEFAULT_DEMO_STATEMENT_TITLE } from "@/lib/demo-admin-schema";
 import { getDemoStatementAppearance } from "@/lib/demo-admin.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/statements")({
   head: () => ({ meta: [{ title: "Statements — Central Bank of India" }] }),
@@ -35,7 +36,7 @@ function StatementsPage() {
   const { data: accounts } = useAccounts(user?.id);
   const { data: savedProfile } = useDemoProfile(user?.id);
   const fetchStatementAppearance = useServerFn(getDemoStatementAppearance);
-  const { data: savedAppearance } = useQuery({
+  const { data: savedAppearance, isLoading: appearanceLoading } = useQuery({
     queryKey: ["demo-statement-appearance", user?.id ?? ""],
     enabled: user?.id === DEMO_USER_ID,
     queryFn: () => fetchStatementAppearance(),
@@ -124,6 +125,19 @@ function StatementsPage() {
     toDate: exportRange.to,
   };
 
+  const downloadPDF = async () => {
+    try {
+      const latestAppearance = user?.id === DEMO_USER_ID ? await fetchStatementAppearance() : savedAppearance;
+      await exportTransactionsPDF(exportItems, {
+        ...meta,
+        statementTitle: latestAppearance?.title ?? DEFAULT_DEMO_STATEMENT_TITLE,
+        statementDisclosureText: latestAppearance?.disclosureText ?? DEFAULT_DEMO_STATEMENT_DISCLOSURE,
+      }, `statement-${exportRange.from}-${exportRange.to}.pdf`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to generate the statement PDF.");
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -167,7 +181,7 @@ function StatementsPage() {
             Demo records only — not bank-issued or bank-verified statements.
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
-            <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsPDF(exportItems, meta, `statement-${exportRange.from}-${exportRange.to}.pdf`)}>
+            <Button variant="outline" disabled={!exportItems.length || (user?.id === DEMO_USER_ID && appearanceLoading)} onClick={() => void downloadPDF()}>
               <FileText className="w-4 h-4 mr-1" /> PDF
             </Button>
             <Button variant="outline" disabled={!exportItems.length} onClick={() => exportTransactionsExcel(exportItems, `statement-${exportRange.from}-${exportRange.to}.xlsx`)}>
