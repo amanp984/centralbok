@@ -10,6 +10,6 @@
 - [x] Fix demo profile saves to use compatible 210,000-iteration PBKDF2-SHA256 hashing only when a new password is supplied
 - [x] Preserve existing demo login hashes during profile-only changes with atomic database saves
 - [x] Add focused tests for password hashing, verification, blank-password preservation, and username-change validation
-- [ ] Verify profile-save field scenarios against persisted database values — blocked: preview is signed out, so the protected Admin Panel cannot be exercised
-- [ ] Verify saved disclosure persistence after refresh — blocked: preview is signed out, so Admin Panel cannot be opened
-- [ ] Verify two consecutive transaction saves keep the Admin Panel open — blocked: preview redirects to login before Settings loads
+- [ ] Verify profile-save field scenarios against persisted database values — blocked: restored preview session still rendered a blank Settings screen
+- [ ] Verify saved disclosure persistence after refresh — blocked: restored preview session still rendered a blank Settings screen
+- [ ] Verify two consecutive transaction saves keep the Admin Panel open — blocked: restored preview session still rendered a blank Settings screen
