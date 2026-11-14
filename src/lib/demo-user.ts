@@ -1,8 +1,6 @@
 // Demo banking profile. The UI login gate is backed by a real auth account;
 // this UUID is that account's user id.
 export const DEMO_USER_ID = "80634f33-ac71-4533-b729-12f0938046e8";
-export const DEMO_USERNAME = "gurudevi130404";
-export const DEMO_PASSWORD = "Shiva@1933";
 export const DEMO_TRANSACTION_PASSWORD = "Shiva@1933";
 export const DEMO_DISPLAY_NAME = "Gurudev traders";
 export const DEMO_FULL_NAME = "Gurudev traders";

@@ -1,16 +1,16 @@
 import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  DEMO_USERNAME,
-  DEMO_PASSWORD,
   isLocallyAuthenticated,
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
 
 import { signInBankSession } from "@/lib/bank-session";
+import { verifyDemoLoginCredentials } from "@/lib/demo-login.functions";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "@/components/AppLoader";
 import bannerAsset from "@/assets/cbi-official-logo.png.asset.json";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const verifyCredentials = useServerFn(verifyDemoLoginCredentials);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -39,7 +40,14 @@ function AuthPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+    let validCredentials = false;
+    try {
+      validCredentials = await verifyCredentials({ data: { username: username.trim(), password } });
+    } catch {
+      setError("Unable to verify your sign-in. Please try again.");
+      return;
+    }
+    if (validCredentials) {
       setSubmitting(true);
       const ok = await signInBankSession();
       if (!ok) {

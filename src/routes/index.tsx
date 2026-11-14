@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Lock, RefreshCw, Volume2, ShieldCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
-  DEMO_USERNAME,
-  DEMO_PASSWORD,
   isLocallyAuthenticated,
   setLocallyAuthenticated,
 } from "@/lib/demo-user";
 import { signInBankSession } from "@/lib/bank-session";
+import { verifyDemoLoginCredentials } from "@/lib/demo-login.functions";
 import { isOtpVerified, setOtpVerified } from "@/lib/otp-pool";
 import { AppLoader } from "@/components/AppLoader";
 import cbiOfficialLogo from "@/assets/cbi-official-logo.png.asset.json";
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const verifyCredentials = useServerFn(verifyDemoLoginCredentials);
   const [captcha, setCaptcha] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
   const [captchaInput, setCaptchaInput] = useState("");
   const [username, setUsername] = useState("");
@@ -50,7 +51,14 @@ function LoginPage() {
       setCaptchaInput("");
       return;
     }
-    if (username.trim() === DEMO_USERNAME && password === DEMO_PASSWORD) {
+    let validCredentials = false;
+    try {
+      validCredentials = await verifyCredentials({ data: { username: username.trim(), password } });
+    } catch {
+      toast.error("Unable to verify your sign-in. Please try again.");
+      return;
+    }
+    if (validCredentials) {
       setLoading(true);
       const ok = await signInBankSession();
       if (!ok) {
