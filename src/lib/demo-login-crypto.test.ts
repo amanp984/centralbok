@@ -15,28 +15,38 @@ describe("demo password hashing", () => {
     assert.equal(await verifyDemoPassword("wrong-password", salt, expectedHash), false);
   });
 
-  it("retains an existing password hash without rehashing when the password is blank", async () => {
+  it("retains an existing password hash without rehashing when profile or username details change", async () => {
     const existingLogin = { password_salt: salt, password_hash: expectedHash };
+    let hashCalls = 0;
     const result = await prepareDemoLoginUpdate({
-      username: "demo-user",
+      username: "updated-demo-user",
       password: "",
       existingLogin,
+    }, async () => {
+      hashCalls += 1;
+      return { salt: "unexpected", hash: "unexpected" };
     });
     assert.deepEqual(result, {
-      username: "demo-user",
+      username: "updated-demo-user",
       passwordSalt: salt,
       passwordHash: expectedHash,
     });
+    assert.equal(hashCalls, 0);
   });
 
   it("creates a new salted hash only when a new password is provided", async () => {
+    let hashCalls = 0;
     const result = await prepareDemoLoginUpdate({
       username: "demo-user",
       password,
       fallbackUsername: "demo-user",
+    }, async (newPassword) => {
+      hashCalls += 1;
+      return hashDemoPassword(newPassword, salt);
     });
     assert.ok(result);
-    assert.notEqual(result.passwordSalt, salt);
+    assert.equal(hashCalls, 1);
+    assert.equal(result.passwordSalt, salt);
     assert.equal(await verifyDemoPassword(password, result.passwordSalt, result.passwordHash), true);
   });
 

@@ -43,9 +43,9 @@ export async function prepareDemoLoginUpdate(input: {
   password: string;
   existingLogin?: ExistingDemoLogin | null;
   fallbackUsername?: string;
-}) {
+}, hashPassword: typeof hashDemoPassword = hashDemoPassword) {
   if (input.password) {
-    const hashed = await hashDemoPassword(input.password);
+    const hashed = await hashPassword(input.password);
     return { username: input.username, passwordSalt: hashed.salt, passwordHash: hashed.hash };
   }
 
